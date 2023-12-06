@@ -7,39 +7,32 @@
 #include <geometry_msgs/msg/quaternion.hpp>
 
 /**
- * @brief Namspace used for RWA3
- *
+ * @brief Utility class for Quaternion to Euler Conversion
  */
-namespace RWA3
+class Utils
 {
+public:
+    Utils() {}
+    ~Utils() {}
+
     /**
-     * @brief Utility class for Quaternion to Euler Conversion
+     * @brief Get the quaternion from euler object
+     *
+     * @param roll  roll angle in radians
+     * @param pitch  pitch angle in radians
+     * @param yaw  yaw angle in radians
+     * @return geometry_msgs::msg::Quaternion  Quaternion from rpy
      */
-    class Utils
-    {
-    public:
-        Utils() {}
-        ~Utils() {}
+    geometry_msgs::msg::Quaternion set_quaternion_from_euler(double roll, double pitch, double yaw);
 
-        /**
-         * @brief Get the quaternion from euler object
-         *
-         * @param roll  roll angle in radians
-         * @param pitch  pitch angle in radians
-         * @param yaw  yaw angle in radians
-         * @return geometry_msgs::msg::Quaternion  Quaternion from rpy
-         */
-        geometry_msgs::msg::Quaternion set_quaternion_from_euler(double roll, double pitch, double yaw);
-
-        /**
-         * @brief Get the euler from quaternion object
-         *
-         * @param quaternion
-         * @param roll
-         * @param pitch
-         * @param yaw
-         * @return array[roll, pitch, yaw]
-         */
-        std::array<double, 3> set_euler_from_quaternion(tf2::Quaternion quaternion);
-    }; // Class Utils
-} // Namespace RWA3
+    /**
+     * @brief Get the euler from quaternion object
+     *
+     * @param quaternion
+     * @param roll
+     * @param pitch
+     * @param yaw
+     * @return array[roll, pitch, yaw]
+     */
+    std::array<double, 3> set_euler_from_quaternion(tf2::Quaternion quaternion);
+}; // Class Utils

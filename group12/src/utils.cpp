@@ -1,6 +1,6 @@
 #include "utils.hpp"
 
-geometry_msgs::msg::Quaternion RWA3::Utils::set_quaternion_from_euler(double roll, double pitch, double yaw)
+geometry_msgs::msg::Quaternion Utils::set_quaternion_from_euler(double roll, double pitch, double yaw)
 {
     tf2::Quaternion q;
     geometry_msgs::msg::Quaternion q_msg;
@@ -15,7 +15,7 @@ geometry_msgs::msg::Quaternion RWA3::Utils::set_quaternion_from_euler(double rol
     return q_msg;
 }
 
-std::array<double, 3> RWA3::Utils::set_euler_from_quaternion(tf2::Quaternion quaternion)
+std::array<double, 3> Utils::set_euler_from_quaternion(tf2::Quaternion quaternion)
 {
     double roll;
     double pitch;
