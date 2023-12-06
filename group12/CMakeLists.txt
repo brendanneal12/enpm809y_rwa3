@@ -19,7 +19,7 @@ find_package(tf2_geometry_msgs REQUIRED)
 include_directories(include/group12)
 
 # executables
-add_executable(robot_controller src/robot_controller.cpp)
+add_executable(robot_controller src/robot_controller.cpp src/utils.cpp)
 ament_target_dependencies(robot_controller rclcpp geometry_msgs)
 install(TARGETS robot_controller DESTINATION lib/${PROJECT_NAME})
 
