@@ -6,7 +6,8 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
-
+#include <mage_msgs/msg/part.hpp>
+#include <mage_msgs/msg/marker.hpp>
 
 using namespace std::chrono_literals;
 
@@ -34,9 +35,16 @@ public:
         broadcast_timer_ = this->create_wall_timer(
             100ms,
             std::bind(&Broadcaster::broadcast_timer_cb_, this));
+
+        marker_subscription_ = this->create_subscription<mage_msgs::msg::Marker>("mage/advanced_logical_camera/image", 10,
+                                                                                 std::bind(&Broadcaster::marker_subscription_cb_, this, std::placeholders::_1));
+
+        part_subscription_ = this->create_subscription<mage_msgs::msg::Part>("mage/advanced_logical_camera/image", 10,
+                                                                             std::bind(&Broadcaster::part_subscription_cb_, this, std::placeholders::_1));
     }
 
 private:
+    // ==================== attributes ====================
     /*!< Boolean parameter to whether or not start the broadcaster */
     bool param_broadcast_;
     /*!< Buffer that stores several seconds of transforms for easy lookup by the listener. */
@@ -50,10 +58,19 @@ private:
     /*!< Wall timer object for the broadcaster*/
     rclcpp::TimerBase::SharedPtr broadcast_timer_;
 
+    rclcpp::Subscription<mage_msgs::msg::Marker>::SharedPtr marker_subscription_;
+    rclcpp::Subscription<mage_msgs::msg::Part>::SharedPtr part_subscription_;
+
+    // ==================== methods =======================
+
     /**
      * @brief Timer to broadcast the transform
      *
      */
     void broadcast_timer_cb_();
+
+    void marker_subscription_cb_(const mage_msgs::msg::Marker::SharedPtr msg);
+
+    void part_subscription_cb_(const mage_msgs::msg::Part::SharedPtr msg);
 
 }; // Class Broadcaster

@@ -5,8 +5,6 @@
 #include <string>
 #include <geometry_msgs/msg/twist.hpp>
 #include <mage_msgs/msg/advanced_logical_camera_image.hpp>
-#include <mage_msgs/msg/part.hpp>
-#include <mage_msgs/msg/marker.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 
 /**
@@ -37,14 +35,9 @@ namespace RWA3
             cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
             cmd_vel_timer_ = this->create_wall_timer(std::chrono::milliseconds(500), std::bind(&RobotController::cmd_vel_timer_cb, this));
 
-            // odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("odom", 10, 
-            //                                                 std::bind(&RobotController::odom_sub_cb_, this, std::placeholders::_1));
+            odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("odom", 10, 
+                                                            std::bind(&RobotController::odom_sub_cb_, this, std::placeholders::_1));
 
-            // marker_subscription_ = this->create_subscription<mage_msgs::msg::Marker>("mage/advanced_logical_camera/image", 10,
-            //                                                 std::bind(&RobotController::marker_subscription_cb_, this, std::placeholders::_1));
-
-            // part_subscription_ = this->create_subscription<mage_msgs::msg::Part>("mage/advanced_logical_camera/image", 10,
-            //                                                 std::bind(&RobotController::part_subscription_cb_, this, std::placeholders::_1));
         }
 
     private:
@@ -56,8 +49,6 @@ namespace RWA3
         // ==================== attributes ====================
         rclcpp::TimerBase::SharedPtr cmd_vel_timer_;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
-        rclcpp::Subscription<mage_msgs::msg::Marker>::SharedPtr marker_subscription_;
-        rclcpp::Subscription<mage_msgs::msg::Part>::SharedPtr part_subscription_;
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscription_;
 
         // ==================== methods =======================
@@ -68,11 +59,7 @@ namespace RWA3
          */
         void cmd_vel_timer_cb();
 
-        // void marker_subscription_cb_();
-
-        // void part_subscription_cb_();
-
-        // void odom_sub_cb_();
+        void odom_sub_cb_(const nav_msgs::msg::Odometry::SharedPtr msg);
 
     }; // Class Robot Controller
 } // Namespace RWA3
