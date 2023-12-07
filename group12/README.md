@@ -1,5 +1,5 @@
-# ENPM809Y_RWA2
-UMD ENPM809Y RWA2: OOP
+# ENPM809Y_RWA3
+UMD ENPM809Y RWA3: First ROS2 Asignment
 
 # Student Information
 Brendan Neal:
@@ -15,9 +15,9 @@ Prathinav Karnala Venkata:
 Directory ID: pratkv.
 
 # Project Information
-Goal: Set up Abstract class MobileRobot and properly define an aggregate class, a composition class, and a set of derived classes.
+Goal: Navigate through a maze using Aruco markers and Store Information about Parts seen by the Advanced Logical Camera
 
-Folder Names: doc, include, and src.
+Folder Names: 
 
 Recommended IDE: Visual Studio Code
 
