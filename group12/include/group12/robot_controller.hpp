@@ -4,7 +4,6 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <string>
 #include <geometry_msgs/msg/twist.hpp>
-#include <mage_msgs/msg/advanced_logical_camera_image.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 
 /**
@@ -35,8 +34,7 @@ namespace RWA3
             cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
             cmd_vel_timer_ = this->create_wall_timer(std::chrono::milliseconds(500), std::bind(&RobotController::cmd_vel_timer_cb, this));
 
-            odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("odom", 10, 
-                                                            std::bind(&RobotController::odom_sub_cb_, this, std::placeholders::_1));
+            odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("odom", 10, std::bind(&RobotController::odom_sub_cb_, this, std::placeholders::_1));
 
         }
 
@@ -47,9 +45,13 @@ namespace RWA3
         std::string aruco_marker_2_;
 
         // ==================== attributes ====================
+        // Pubs/Subs
         rclcpp::TimerBase::SharedPtr cmd_vel_timer_;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscription_;
+
+        //Robot Attributes
+        std::pair<double, double> position_;
 
         // ==================== methods =======================
 
