@@ -32,24 +32,24 @@ void Broadcaster::broadcast_timer_cb_()
 
 void Broadcaster::marker_subscription_cb_(const mage_msgs::msg::Marker::SharedPtr msg)
 {
-    // aruco_position_[0] = msg.
-    // aruco_position_[1] = msg.
-    // aruco_position_[2] = msg.
-    // aruco_orientation_.w = msg.
-    // aruco_orientation_.x = msg.
-    // aruco_orientation_.y = msg.
-    // aruco_orientation_.z = msg.
+    // aruco_position_[0] = msg->pose.position.x
+    // aruco_position_[1] = msg->
+    // aruco_position_[2] = msg->
+    // aruco_orientation_.w = msg->
+    // aruco_orientation_.x = msg->
+    // aruco_orientation_.y = msg->
+    // aruco_orientation_.z = msg->
 }
 
 void Broadcaster::part_subscription_cb_(const mage_msgs::msg::Part::SharedPtr msg)
 {
-    // part_position_[0] = msg.
-    // part_position_[1] = msg.
-    // part_position_[2] = msg.
-    // part_orientation_.w = msg.
-    // part_orientation_.x = msg.
-    // part_orientation_.y = msg.
-    // part_orientation_.z = msg.
+    // part_position_[0] = msg->
+    // part_position_[1] = msg->
+    // part_position_[2] = msg->
+    // part_orientation_.w = msg->
+    // part_orientation_.x = msg->
+    // part_orientation_.y = msg->
+    // part_orientation_.z = msg->
 }
 
 int main(int argc, char **argv)

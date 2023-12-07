@@ -14,15 +14,16 @@ void RWA3::RobotController::cmd_vel_timer_cb()
 
 void RWA3::RobotController::odom_sub_cb_(const nav_msgs::msg::Odometry::SharedPtr msg)
 {
-  position_.first = msg->pose.pose.position.x;
-  position_.second = msg->pose.pose.position.y;
+  robot_position_[0] = msg->pose.pose.position.x;
+  robot_position_[1] = msg->pose.pose.position.y;
+  robot_position_[2] = msg->pose.pose.position.z;
   // RCLCPP_INFO_STREAM(this->get_logger(), "X: " << position_.first << "Y: " << position_.second);
 }
 
 void RWA3::RobotController::marker_subscription_cb_(const mage_msgs::msg::Marker::SharedPtr msg)
 {
   (void) msg;
-  // turn_instruction_ = msg;
+  // turn_instruction_ = msg->marker_id
 }
 
 int main(int argc, char **argv)

@@ -55,7 +55,7 @@ namespace RWA3
         rclcpp::Subscription<mage_msgs::msg::Marker>::SharedPtr marker_subscription_;
 
         // Robot Attributes
-        std::pair<double, double> position_;
+        std::array<double, 3> robot_position_;
         std::string turn_instruction_;
 
         // ==================== methods =======================
