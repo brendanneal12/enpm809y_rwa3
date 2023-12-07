@@ -21,7 +21,7 @@ include_directories(include/group12)
 
 # executables
 add_executable(robot_controller src/robot_controller.cpp)
-ament_target_dependencies(robot_controller rclcpp geometry_msgs nav_msgs)
+ament_target_dependencies(robot_controller rclcpp geometry_msgs nav_msgs mage_msgs)
 install(TARGETS robot_controller DESTINATION lib/${PROJECT_NAME})
 
 # install directories

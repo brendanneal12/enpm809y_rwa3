@@ -8,6 +8,9 @@
 #include <tf2_ros/buffer.h>
 #include <mage_msgs/msg/part.hpp>
 #include <mage_msgs/msg/marker.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <geometry_msgs/msg/quaternion.hpp>
+
 
 using namespace std::chrono_literals;
 
@@ -58,8 +61,17 @@ private:
     /*!< Wall timer object for the broadcaster*/
     rclcpp::TimerBase::SharedPtr broadcast_timer_;
 
+    // Pubs/Subs
     rclcpp::Subscription<mage_msgs::msg::Marker>::SharedPtr marker_subscription_;
     rclcpp::Subscription<mage_msgs::msg::Part>::SharedPtr part_subscription_;
+
+    // Storage for Marker Position
+    std::array<double, 3> aruco_position_;
+    geometry_msgs::msg::Quaternion aruco_orientation_;
+
+    // Storage for Part Position
+    std::array<double, 3> part_position_;
+    geometry_msgs::msg::Quaternion part_orientation_;
 
     // ==================== methods =======================
 
