@@ -20,9 +20,9 @@ void RWA3::RobotController::odom_sub_cb_(const nav_msgs::msg::Odometry::SharedPt
   // RCLCPP_INFO_STREAM(this->get_logger(), "X: " << position_.first << "Y: " << position_.second);
 }
 
-void RWA3::RobotController::marker_subscription_cb_(const mage_msgs::msg::Marker::SharedPtr msg)
+void RWA3::RobotController::marker_subscription_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg)
 {
-  (void) msg;
+  (void) msg; //TODO: HERE
   // turn_instruction_ = msg->marker_id
 }
 

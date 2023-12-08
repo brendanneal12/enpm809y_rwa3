@@ -10,6 +10,7 @@
 #include <mage_msgs/msg/marker.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <geometry_msgs/msg/quaternion.hpp>
+#include <mage_msgs/msg/advanced_logical_camera_image.hpp>
 
 
 using namespace std::chrono_literals;
@@ -39,11 +40,9 @@ public:
             100ms,
             std::bind(&Broadcaster::broadcast_timer_cb_, this));
 
-        marker_subscription_ = this->create_subscription<mage_msgs::msg::Marker>("mage/advanced_logical_camera/image", 10,
-                                                                                 std::bind(&Broadcaster::marker_subscription_cb_, this, std::placeholders::_1));
-
-        part_subscription_ = this->create_subscription<mage_msgs::msg::Part>("mage/advanced_logical_camera/image", 10,
-                                                                             std::bind(&Broadcaster::part_subscription_cb_, this, std::placeholders::_1));
+        camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", 10,
+                                                                             std::bind(&Broadcaster::camera_sub_cb_, this, std::placeholders::_1));
+        
     }
 
 private:
@@ -63,7 +62,7 @@ private:
 
     // Pubs/Subs
     rclcpp::Subscription<mage_msgs::msg::Marker>::SharedPtr marker_subscription_;
-    rclcpp::Subscription<mage_msgs::msg::Part>::SharedPtr part_subscription_;
+    rclcpp::Subscription<mage_msgs::msg::AdvancedLogicalCameraImage>::SharedPtr camera_subscription_;
 
     // Storage for Marker Position
     std::array<double, 3> aruco_position_;
@@ -81,8 +80,6 @@ private:
      */
     void broadcast_timer_cb_();
 
-    void marker_subscription_cb_(const mage_msgs::msg::Marker::SharedPtr msg);
-
-    void part_subscription_cb_(const mage_msgs::msg::Part::SharedPtr msg);
+    void camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
 
 }; // Class Broadcaster
