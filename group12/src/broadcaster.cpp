@@ -50,30 +50,36 @@ void Broadcaster::aruco_broadcast_timer_cb_()
 
 void Broadcaster::advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg)
 {
-    part_position_[0] = msg->part_poses[0].pose.position.x;
-    part_position_[1] = msg->part_poses[0].pose.position.y;
-    part_position_[2] = msg->part_poses[0].pose.position.z;
-    part_orientation_.x = msg->part_poses[0].pose.orientation.x;
-    part_orientation_.y = msg->part_poses[0].pose.orientation.y;
-    part_orientation_.z = msg->part_poses[0].pose.orientation.z;
-    part_orientation_.w = msg->part_poses[0].pose.orientation.w;
+    if (msg)
+    {
+        part_position_[0] = msg->part_poses[0].pose.position.x;
+        part_position_[1] = msg->part_poses[0].pose.position.y;
+        part_position_[2] = msg->part_poses[0].pose.position.z;
+        part_orientation_.x = msg->part_poses[0].pose.orientation.x;
+        part_orientation_.y = msg->part_poses[0].pose.orientation.y;
+        part_orientation_.z = msg->part_poses[0].pose.orientation.z;
+        part_orientation_.w = msg->part_poses[0].pose.orientation.w;
 
-    //RCLCPP_INFO_STREAM(this->get_logger(), "Part X: " << part_position_[0] << "Y: " << part_position_[1]);
-    Broadcaster::part_broadcast_timer_cb_();
+        // RCLCPP_INFO_STREAM(this->get_logger(), "Part X: " << part_position_[0] << "Y: " << part_position_[1]);
+        Broadcaster::part_broadcast_timer_cb_();
+    }
 }
 
 void Broadcaster::turtle_camera_sub_cb_(const mage_msgs::msg::Marker::SharedPtr msg)
 {
-    aruco_position_[0] = msg->pose.pose.position.x;
-    aruco_position_[1] = msg->pose.pose.position.y;
-    aruco_position_[2] = msg->pose.pose.position.z;
-    aruco_orientation_.x = msg->pose.pose.orientation.x;
-    aruco_orientation_.y = msg->pose.pose.orientation.y;
-    aruco_orientation_.z = msg->pose.pose.orientation.z;
-    aruco_orientation_.w = msg->pose.pose.orientation.w;
+    if (msg)
+    {
+        aruco_position_[0] = msg->pose.pose.position.x;
+        aruco_position_[1] = msg->pose.pose.position.y;
+        aruco_position_[2] = msg->pose.pose.position.z;
+        aruco_orientation_.x = msg->pose.pose.orientation.x;
+        aruco_orientation_.y = msg->pose.pose.orientation.y;
+        aruco_orientation_.z = msg->pose.pose.orientation.z;
+        aruco_orientation_.w = msg->pose.pose.orientation.w;
 
-    RCLCPP_INFO_STREAM(this->get_logger(), "Aruco X: " << aruco_position_[0] << "Y: " << aruco_position_[1]);
-    Broadcaster::aruco_broadcast_timer_cb_();
+        RCLCPP_INFO_STREAM(this->get_logger(), "Aruco X: " << aruco_position_[0] << "Y: " << aruco_position_[1]);
+        Broadcaster::aruco_broadcast_timer_cb_();
+    }
 }
 
 int main(int argc, char **argv)

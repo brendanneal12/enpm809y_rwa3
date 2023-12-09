@@ -25,7 +25,7 @@ public:
         //     return;
         // }
 
-        RCLCPP_INFO(this->get_logger(), "Listener demo started");
+        RCLCPP_INFO(this->get_logger(), "Listener Started");
 
         // load a buffer of transforms
         tf_buffer_ =
