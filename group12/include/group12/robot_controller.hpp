@@ -42,10 +42,9 @@ namespace RWA3
             // Set up odometry subscription and bind it to a callback.
             odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("odom", 10, std::bind(&RobotController::odom_sub_cb_, this, std::placeholders::_1));
 
-
             // Set up marker subscriptio  and bind it to a callback.
             marker_subscription_ = this->create_subscription<mage_msgs::msg::Marker>("/aruco_markers", rclcpp::SensorDataQoS(),
-                                                                             std::bind(&RobotController::marker_sub_cb_, this, std::placeholders::_1));
+                                                                                     std::bind(&RobotController::marker_sub_cb_, this, std::placeholders::_1));
         }
 
     private:

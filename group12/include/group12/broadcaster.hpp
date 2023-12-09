@@ -13,6 +13,7 @@
 #include <mage_msgs/msg/advanced_logical_camera_image.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <mage_msgs/msg/marker.hpp>
+#include <ros2_aruco_interfaces/msg/aruco_markers.hpp>
 
 using namespace std::chrono_literals;
 
@@ -43,7 +44,7 @@ public:
         advanced_camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", rclcpp::SensorDataQoS(),
                                                                                                               std::bind(&Broadcaster::advanced_camera_sub_cb_, this, std::placeholders::_1));
 
-        turtle_camera_subscription_ = this->create_subscription<mage_msgs::msg::Marker>("/aruco_markers", rclcpp::SensorDataQoS(),
+        turtle_camera_subscription_ = this->create_subscription<ros2_aruco_interfaces::msg::ArucoMarkers>("/aruco_markers", rclcpp::SensorDataQoS(),
                                                                                         std::bind(&Broadcaster::turtle_camera_sub_cb_, this, std::placeholders::_1));
     }
 
@@ -65,7 +66,7 @@ private:
 
     // Pubs/Subs
     rclcpp::Subscription<mage_msgs::msg::AdvancedLogicalCameraImage>::SharedPtr advanced_camera_subscription_;
-    rclcpp::Subscription<mage_msgs::msg::Marker>::SharedPtr turtle_camera_subscription_;
+    rclcpp::Subscription<ros2_aruco_interfaces::msg::ArucoMarkers>::SharedPtr turtle_camera_subscription_;
 
     // Storage for Marker Position
     std::array<double, 3> aruco_position_;
@@ -89,7 +90,7 @@ private:
      * @return unknown
      */
     std::string convert_part_type_to_string(unsigned int part_type);
-    
+
     /**
      * @brief Convert a part color to a string
      *
@@ -106,6 +107,6 @@ private:
     void part_broadcast_timer_cb_();
     void aruco_broadcast_timer_cb_();
     void advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
-    void turtle_camera_sub_cb_(const mage_msgs::msg::Marker::SharedPtr msg);
+    void turtle_camera_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg);
 
 }; // Class Broadcaster

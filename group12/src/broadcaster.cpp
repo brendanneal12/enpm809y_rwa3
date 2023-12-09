@@ -67,17 +67,17 @@ void Broadcaster::advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalC
     }
 }
 
-void Broadcaster::turtle_camera_sub_cb_(const mage_msgs::msg::Marker::SharedPtr msg)
+void Broadcaster::turtle_camera_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg)
 {
     if (msg)
     {
-        aruco_position_[0] = msg->pose.pose.position.x;
-        aruco_position_[1] = msg->pose.pose.position.y;
-        aruco_position_[2] = msg->pose.pose.position.z;
-        aruco_orientation_.x = msg->pose.pose.orientation.x;
-        aruco_orientation_.y = msg->pose.pose.orientation.y;
-        aruco_orientation_.z = msg->pose.pose.orientation.z;
-        aruco_orientation_.w = msg->pose.pose.orientation.w;
+        aruco_position_[0] = msg->poses[0].position.x;
+        aruco_position_[1] = msg->poses[0].position.y;
+        aruco_position_[2] = msg->poses[0].position.z;
+        aruco_orientation_.x = msg->poses[0].orientation.x;
+        aruco_orientation_.y = msg->poses[0].orientation.y;
+        aruco_orientation_.z = msg->poses[0].orientation.z;
+        aruco_orientation_.w = msg->poses[0].orientation.w;
 
         RCLCPP_INFO_STREAM(this->get_logger(), "Aruco X: " << aruco_position_[0] << "Y: " << aruco_position_[1]);
         Broadcaster::aruco_broadcast_timer_cb_();
