@@ -17,13 +17,16 @@ void RWA3::RobotController::odom_sub_cb_(const nav_msgs::msg::Odometry::SharedPt
   robot_position_[0] = msg->pose.pose.position.x;
   robot_position_[1] = msg->pose.pose.position.y;
   robot_position_[2] = msg->pose.pose.position.z;
+  robot_orientation_.x = msg->pose.pose.orientation.x;
+  robot_orientation_.y = msg->pose.pose.orientation.y;
+  robot_orientation_.z = msg->pose.pose.orientation.z;
+  robot_orientation_.w = msg->pose.pose.orientation.w;
   // RCLCPP_INFO_STREAM(this->get_logger(), "X: " << position_.first << "Y: " << position_.second);
 }
 
-void RWA3::RobotController::marker_subscription_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg)
+void RWA3::RobotController::marker_sub_cb_(const mage_msgs::msg::Marker::SharedPtr msg)
 {
-  (void) msg; //TODO: HERE
-  // turn_instruction_ = msg->marker_id
+  turn_instruction_ =  msg->id;
 }
 
 int main(int argc, char **argv)

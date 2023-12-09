@@ -41,7 +41,8 @@ void Listener::listen_transform(const std::string &source_frame, const std::stri
 
 void Listener::listen_timer_cb_()
 {
-    listen_transform("odom", "dynamic_frame");
+    listen_transform("odom", "part_frame");
+    listen_transform("odom", "aruco_marker_frame");
 }
 
 int main(int argc, char **argv) {

@@ -11,6 +11,8 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <mage_msgs/msg/advanced_logical_camera_image.hpp>
+#include <sensor_msgs/msg/image.hpp>
+#include <mage_msgs/msg/marker.hpp>
 
 
 using namespace std::chrono_literals;
@@ -21,7 +23,7 @@ public:
     Broadcaster(std::string node_name) : Node(node_name)
     {
         // parameter to decide whether to execute the broadcaster or not
-        RCLCPP_INFO(this->get_logger(), "Broadcaster demo started");
+        RCLCPP_INFO(this->get_logger(), "Broadcaster Started");
 
         // initialize a static transform broadcaster
         tf_static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
@@ -36,12 +38,16 @@ public:
         utils_ptr_ = std::make_shared<Utils>();
 
         // timer to publish the transform
-        broadcast_timer_ = this->create_wall_timer(
-            100ms,
-            std::bind(&Broadcaster::broadcast_timer_cb_, this));
+        part_broadcast_timer_ = this->create_wall_timer(100ms, std::bind(&Broadcaster::part_broadcast_timer_cb_, this));
+        aruco_broadcast_timer_ = this->create_wall_timer(100ms, std::bind(&Broadcaster::aruco_broadcast_timer_cb_, this));
 
-        camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", 10,
-                                                                             std::bind(&Broadcaster::camera_sub_cb_, this, std::placeholders::_1));
+
+
+        advanced_camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", rclcpp::SensorDataQoS(),
+                                                                             std::bind(&Broadcaster::advanced_camera_sub_cb_, this, std::placeholders::_1));
+
+        turtle_camera_subscription_ = this->create_subscription<mage_msgs::msg::Marker>("/aruco_markers", rclcpp::SensorDataQoS(),
+                                                                             std::bind(&Broadcaster::turtle_camera_sub_cb_, this, std::placeholders::_1));
         
     }
 
@@ -58,11 +64,12 @@ private:
     /*!< Utils object to access utility functions*/
     std::shared_ptr<Utils> utils_ptr_;
     /*!< Wall timer object for the broadcaster*/
-    rclcpp::TimerBase::SharedPtr broadcast_timer_;
+    rclcpp::TimerBase::SharedPtr part_broadcast_timer_;
+    rclcpp::TimerBase::SharedPtr aruco_broadcast_timer_;
 
     // Pubs/Subs
-    rclcpp::Subscription<mage_msgs::msg::Marker>::SharedPtr marker_subscription_;
-    rclcpp::Subscription<mage_msgs::msg::AdvancedLogicalCameraImage>::SharedPtr camera_subscription_;
+    rclcpp::Subscription<mage_msgs::msg::AdvancedLogicalCameraImage>::SharedPtr advanced_camera_subscription_;
+    rclcpp::Subscription<mage_msgs::msg::Marker>::SharedPtr turtle_camera_subscription_;
 
     // Storage for Marker Position
     std::array<double, 3> aruco_position_;
@@ -78,8 +85,11 @@ private:
      * @brief Timer to broadcast the transform
      *
      */
-    void broadcast_timer_cb_();
+    void part_broadcast_timer_cb_();
 
-    void camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
+    void aruco_broadcast_timer_cb_();
+
+    void advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
+    void turtle_camera_sub_cb_(const mage_msgs::msg::Marker::SharedPtr msg);
 
 }; // Class Broadcaster
