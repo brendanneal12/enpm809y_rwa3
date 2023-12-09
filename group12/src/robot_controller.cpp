@@ -27,6 +27,7 @@ void RWA3::RobotController::odom_sub_cb_(const nav_msgs::msg::Odometry::SharedPt
 void RWA3::RobotController::marker_sub_cb_(const mage_msgs::msg::Marker::SharedPtr msg)
 {
   turn_instruction_ =  msg->id;
+  RCLCPP_INFO_STREAM(this->get_logger(), "TURN INSTRUCTIONS DETECTED");
 }
 
 int main(int argc, char **argv)

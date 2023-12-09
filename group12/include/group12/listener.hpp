@@ -53,7 +53,8 @@ private:
      * @param source_frame Source frame (child frame) of the transform
      * @param target_frame Target frame (parent frame) of the transform
      */
-    void listen_transform(const std::string &source_frame, const std::string &target_frame);
+    void listen_transform_aruco(const std::string &source_frame, const std::string &target_frame);
+    void listen_transform_part(const std::string &source_frame, const std::string &target_frame);
 
     /**
      * @brief Timer to listen to the transform
