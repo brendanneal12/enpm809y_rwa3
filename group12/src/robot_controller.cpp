@@ -24,9 +24,9 @@ void RWA3::RobotController::odom_sub_cb_(const nav_msgs::msg::Odometry::SharedPt
   // RCLCPP_INFO_STREAM(this->get_logger(), "X: " << position_.first << "Y: " << position_.second);
 }
 
-void RWA3::RobotController::marker_sub_cb_(const mage_msgs::msg::Marker::SharedPtr msg)
+void RWA3::RobotController::marker_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg)
 {
-  turn_instruction_ =  msg->id;
+  turn_instruction_ =  msg->marker_ids[0];
   RCLCPP_INFO_STREAM(this->get_logger(), "TURN INSTRUCTIONS DETECTED");
 }
 

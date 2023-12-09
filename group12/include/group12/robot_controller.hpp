@@ -8,6 +8,7 @@
 #include <mage_msgs/msg/marker.hpp>
 #include <mage_msgs/msg/advanced_logical_camera_image.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
+#include <ros2_aruco_interfaces/msg/aruco_markers.hpp>
 
 /**
  * @brief Namspace used for RWA3
@@ -43,7 +44,7 @@ namespace RWA3
             odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("odom", 10, std::bind(&RobotController::odom_sub_cb_, this, std::placeholders::_1));
 
             // Set up marker subscriptio  and bind it to a callback.
-            marker_subscription_ = this->create_subscription<mage_msgs::msg::Marker>("/aruco_markers", rclcpp::SensorDataQoS(),
+            marker_subscription_ = this->create_subscription<ros2_aruco_interfaces::msg::ArucoMarkers>("/aruco_markers", rclcpp::SensorDataQoS(),
                                                                                      std::bind(&RobotController::marker_sub_cb_, this, std::placeholders::_1));
         }
 
@@ -58,7 +59,7 @@ namespace RWA3
         rclcpp::TimerBase::SharedPtr cmd_vel_timer_;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscription_;
-        rclcpp::Subscription<mage_msgs::msg::Marker>::SharedPtr marker_subscription_;
+        rclcpp::Subscription<ros2_aruco_interfaces::msg::ArucoMarkers>::SharedPtr marker_subscription_;
 
         // Robot Attributes
         std::array<double, 3> robot_position_;
@@ -85,7 +86,7 @@ namespace RWA3
          * @param msg
          */
 
-        void marker_sub_cb_(const mage_msgs::msg::Marker::SharedPtr msg);
+        void marker_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg);
 
     }; // Class Robot Controller
 } // Namespace RWA3
