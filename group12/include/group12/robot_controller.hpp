@@ -110,7 +110,7 @@ namespace RWA3
         std::pair<double, double> robot_position_;
         geometry_msgs::msg::Quaternion robot_orientation_;
         int turn_instruction_;
-        double dist_2_nearest_aruco_;
+        double dist_2_nearest_aruco_{100};
 
         // Storage for Marker Position
         std::array<double, 3> aruco_position_;

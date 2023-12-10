@@ -47,6 +47,7 @@ void RWA3::RobotController::turtle_camera_sub_cb_(const ros2_aruco_interfaces::m
 {
   if (!msg->marker_ids[0])
   {
+    RCLCPP_INFO_STREAM(this->get_logger(), "RGB Camera Sub Callback");
     aruco_position_[0] = msg->poses[0].position.x;
     aruco_position_[1] = msg->poses[0].position.y;
     aruco_position_[2] = msg->poses[0].position.z;
@@ -55,7 +56,10 @@ void RWA3::RobotController::turtle_camera_sub_cb_(const ros2_aruco_interfaces::m
     aruco_orientation_.z = msg->poses[0].orientation.z;
     aruco_orientation_.w = msg->poses[0].orientation.w;
 
-    RWA3::RobotController::aruco_broadcast_timer_cb_();
+    for (int i = 0; i < 10; i++)
+    {
+      RWA3::RobotController::aruco_broadcast_timer_cb_();
+    }
 
     RWA3::RobotController::aruco_frame_listener_();
   }
@@ -78,6 +82,7 @@ void RWA3::RobotController::aruco_broadcast_timer_cb_()
   aruco_transform_stamped.transform.rotation.w = aruco_orientation_.w;
 
   aruco_tf_broadcaster_->sendTransform(aruco_transform_stamped);
+  RCLCPP_INFO_STREAM(this->get_logger(), "Aruco Broadcaster");
 }
 
 void RWA3::RobotController::aruco_frame_listener_()
@@ -87,20 +92,24 @@ void RWA3::RobotController::aruco_frame_listener_()
   try
   {
     aruco = aruco_tf_buffer_->lookupTransform("aruco_marker_frame", "odom", tf2::TimePointZero);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Got Transform b/w aruco and odom");
+
+    // double aruco_x = aruco.transform.translation.x;
+    // // RCLCPP_INFO_STREAM(this->get_logger(), "Aruco X in Odom:" << aruco_x);
+    // double aruco_y = aruco.transform.translation.y;
+
+    // std::pair<double, double> aruco_position;
+    // aruco_position.first = aruco_x;
+    // aruco_position.second = aruco_y;
+
+    // dist_2_nearest_aruco_ = calcualte_distance(aruco_position, robot_position_);
+    // // RCLCPP_INFO_STREAM(this->get_logger(), "Distance to Nearest Aruco:" << dist_2_nearest_aruco_);
+
   }
   catch (const tf2::TransformException &except)
   {
     RCLCPP_INFO_STREAM(this->get_logger(), "Could not get transform b/w aruco and odom");
   }
-  double aruco_x = aruco.transform.translation.x;
-  double aruco_y = aruco.transform.translation.y;
-
-  std::pair<double, double> aruco_position;
-  aruco_position.first = aruco_x;
-  aruco_position.second = aruco_y;
-
-  dist_2_nearest_aruco_ = calcualte_distance(aruco_position, robot_position_);
-  // RCLCPP_INFO_STREAM(this->get_logger(), "Distance to Nearest Aruco:" << dist_2_nearest_aruco_);
 }
 
 // void RWA3::RobotController::advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg)
