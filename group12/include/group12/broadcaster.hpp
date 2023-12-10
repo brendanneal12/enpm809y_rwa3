@@ -14,58 +14,46 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <mage_msgs/msg/marker.hpp>
 #include <ros2_aruco_interfaces/msg/aruco_markers.hpp>
+#include "robot_controller.hpp"
+#include <tf2/exceptions.h>
 
 using namespace std::chrono_literals;
 
 class Broadcaster : public rclcpp::Node
 {
 public:
-    Broadcaster(std::string node_name) : Node(node_name)
+    Broadcaster(std::shared_ptr<RWA3::RobotController> const &robot_controller) : Node("broadcaster")
     {
-        // parameter to decide whether to execute the broadcaster or not
+
+        n_robot_controller = robot_controller;
         RCLCPP_INFO(this->get_logger(), "Broadcaster Started");
 
-        // initialize a static transform broadcaster
-        tf_static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
-
         // initialize the transform broadcaster
-        tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+        aruco_tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
+        part_tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
 
-        // Load a buffer of transforms
-        tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
-        tf_buffer_->setUsingDedicatedThread(true);
         // Create a utils object to use the utility functions
         utils_ptr_ = std::make_shared<Utils>();
 
-        // timer to publish the transform
-        part_broadcast_timer_ = this->create_wall_timer(100ms, std::bind(&Broadcaster::part_broadcast_timer_cb_, this));
-        aruco_broadcast_timer_ = this->create_wall_timer(100ms, std::bind(&Broadcaster::aruco_broadcast_timer_cb_, this));
+        // this->advanced_camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", rclcpp::SensorDataQoS(),
+        //                                                                                                       std::bind(&Broadcaster::advanced_camera_sub_cb_, this, std::placeholders::_1));
 
-        advanced_camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", rclcpp::SensorDataQoS(),
-                                                                                                              std::bind(&Broadcaster::advanced_camera_sub_cb_, this, std::placeholders::_1));
-
-        turtle_camera_subscription_ = this->create_subscription<ros2_aruco_interfaces::msg::ArucoMarkers>("/aruco_markers", rclcpp::SensorDataQoS(),
-                                                                                        std::bind(&Broadcaster::turtle_camera_sub_cb_, this, std::placeholders::_1));
+        this->turtle_camera_subscription_ = this->create_subscription<ros2_aruco_interfaces::msg::ArucoMarkers>("/aruco_markers", rclcpp::SensorDataQoS(),
+                                                                                                                std::bind(&Broadcaster::turtle_camera_sub_cb_, this, std::placeholders::_1));
     }
 
 private:
     // ==================== attributes ====================
-    /*!< Boolean parameter to whether or not start the broadcaster */
-    bool param_broadcast_;
-    /*!< Buffer that stores several seconds of transforms for easy lookup by the listener. */
-    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-    /*!< Static broadcaster object */
-    std::shared_ptr<tf2_ros::StaticTransformBroadcaster> tf_static_broadcaster_;
-    /*!< Broadcaster object */
-    std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
-    /*!< Utils object to access utility functions*/
+    std::shared_ptr<RWA3::RobotController> n_robot_controller;
     std::shared_ptr<Utils> utils_ptr_;
-    /*!< Wall timer object for the broadcaster*/
-    rclcpp::TimerBase::SharedPtr part_broadcast_timer_;
+
+    std::shared_ptr<tf2_ros::TransformBroadcaster> aruco_tf_broadcaster_;
     rclcpp::TimerBase::SharedPtr aruco_broadcast_timer_;
+    std::shared_ptr<tf2_ros::TransformBroadcaster> part_tf_broadcaster_;
+    rclcpp::TimerBase::SharedPtr part_broadcast_timer_;
 
     // Pubs/Subs
-    rclcpp::Subscription<mage_msgs::msg::AdvancedLogicalCameraImage>::SharedPtr advanced_camera_subscription_;
+    // rclcpp::Subscription<mage_msgs::msg::AdvancedLogicalCameraImage>::SharedPtr advanced_camera_subscription_;
     rclcpp::Subscription<ros2_aruco_interfaces::msg::ArucoMarkers>::SharedPtr turtle_camera_subscription_;
 
     // Storage for Marker Position
@@ -104,9 +92,11 @@ private:
      */
     std::string convert_part_color_to_string(unsigned int part_color);
 
-    void part_broadcast_timer_cb_();
+    // void part_broadcast_timer_cb_();
+    // void advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
+
     void aruco_broadcast_timer_cb_();
-    void advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
     void turtle_camera_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg);
+
 
 }; // Class Broadcaster

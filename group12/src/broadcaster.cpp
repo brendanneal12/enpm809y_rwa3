@@ -1,33 +1,66 @@
 #include <broadcaster.hpp>
-#include "geometry_msgs/msg/transform_stamped.hpp"
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <utils.hpp>
-// needed for the listener
-#include <tf2/exceptions.h>
 
 // allows to use, 50ms, etc
 using namespace std::chrono_literals;
 
-void Broadcaster::part_broadcast_timer_cb_()
+// void Broadcaster::advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg)
+// {
+//     if (!msg)
+//     {
+//         RCLCPP_INFO_STREAM(this->get_logger(), "LOGICAL CAMERA SUB CB");
+//         part_color_ = convert_part_color_to_string(msg->part_poses[0].part.type);
+//         part_type_ = convert_part_type_to_string(msg->part_poses[0].part.color);
+//         part_position_[0] = msg->part_poses[0].pose.position.x;
+//         part_position_[1] = msg->part_poses[0].pose.position.y;
+//         part_position_[2] = msg->part_poses[0].pose.position.z;
+//         part_orientation_.x = msg->part_poses[0].pose.orientation.x;
+//         part_orientation_.y = msg->part_poses[0].pose.orientation.y;
+//         part_orientation_.z = msg->part_poses[0].pose.orientation.z;
+//         part_orientation_.w = msg->part_poses[0].pose.orientation.w;
+
+//         Broadcaster::part_broadcast_timer_cb_();
+
+//         Broadcaster::part_frame_listener_();
+//     }
+// }
+
+void Broadcaster::turtle_camera_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg)
 {
-    geometry_msgs::msg::TransformStamped part_transform_stamped;
+    if (!msg->marker_ids[0])
+    {
+        aruco_position_[0] = msg->poses[0].position.x;
+        aruco_position_[1] = msg->poses[0].position.y;
+        aruco_position_[2] = msg->poses[0].position.z;
+        aruco_orientation_.x = msg->poses[0].orientation.x;
+        aruco_orientation_.y = msg->poses[0].orientation.y;
+        aruco_orientation_.z = msg->poses[0].orientation.z;
+        aruco_orientation_.w = msg->poses[0].orientation.w;
 
-    part_transform_stamped.header.stamp = this->get_clock()->now();
-    part_transform_stamped.header.frame_id = "logical_camera_link";
-    part_transform_stamped.child_frame_id = "part_frame";
+        Broadcaster::aruco_broadcast_timer_cb_();
 
-    part_transform_stamped.transform.translation.x = part_position_[0];
-    part_transform_stamped.transform.translation.y = part_position_[1];
-    part_transform_stamped.transform.translation.z = part_position_[2];
-
-    part_transform_stamped.transform.rotation.x = part_orientation_.x;
-    part_transform_stamped.transform.rotation.y = part_orientation_.y;
-    part_transform_stamped.transform.rotation.z = part_orientation_.z;
-    part_transform_stamped.transform.rotation.w = part_orientation_.w;
-
-    // Send the transform
-    tf_broadcaster_->sendTransform(part_transform_stamped);
+    }
 }
+
+// void Broadcaster::part_broadcast_timer_cb_()
+// {
+//     geometry_msgs::msg::TransformStamped part_transform_stamped;
+
+//     part_transform_stamped.header.stamp = this->get_clock()->now();
+//     part_transform_stamped.header.frame_id = "logical_camera_link";
+//     part_transform_stamped.child_frame_id = "part_frame";
+
+//     part_transform_stamped.transform.translation.x = part_position_[0];
+//     part_transform_stamped.transform.translation.y = part_position_[1];
+//     part_transform_stamped.transform.translation.z = part_position_[2];
+
+//     part_transform_stamped.transform.rotation.x = part_orientation_.x;
+//     part_transform_stamped.transform.rotation.y = part_orientation_.y;
+//     part_transform_stamped.transform.rotation.z = part_orientation_.z;
+//     part_transform_stamped.transform.rotation.w = part_orientation_.w;
+
+//     // Send the transform
+//     part_tf_broadcaster_->sendTransform(part_transform_stamped);
+// }
 
 void Broadcaster::aruco_broadcast_timer_cb_()
 {
@@ -45,43 +78,7 @@ void Broadcaster::aruco_broadcast_timer_cb_()
     aruco_transform_stamped.transform.rotation.z = aruco_orientation_.z;
     aruco_transform_stamped.transform.rotation.w = aruco_orientation_.w;
 
-    tf_broadcaster_->sendTransform(aruco_transform_stamped);
-}
-
-void Broadcaster::advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg)
-{
-    if (msg)
-    {
-        part_color_ = convert_part_color_to_string(msg->part_poses[0].part.type);
-        part_type_ = convert_part_type_to_string(msg->part_poses[0].part.color);
-        part_position_[0] = msg->part_poses[0].pose.position.x;
-        part_position_[1] = msg->part_poses[0].pose.position.y;
-        part_position_[2] = msg->part_poses[0].pose.position.z;
-        part_orientation_.x = msg->part_poses[0].pose.orientation.x;
-        part_orientation_.y = msg->part_poses[0].pose.orientation.y;
-        part_orientation_.z = msg->part_poses[0].pose.orientation.z;
-        part_orientation_.w = msg->part_poses[0].pose.orientation.w;
-
-        // RCLCPP_INFO_STREAM(this->get_logger(), "Part X: " << part_position_[0] << "Y: " << part_position_[1]);
-        Broadcaster::part_broadcast_timer_cb_();
-    }
-}
-
-void Broadcaster::turtle_camera_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg)
-{
-    if (msg)
-    {
-        aruco_position_[0] = msg->poses[0].position.x;
-        aruco_position_[1] = msg->poses[0].position.y;
-        aruco_position_[2] = msg->poses[0].position.z;
-        aruco_orientation_.x = msg->poses[0].orientation.x;
-        aruco_orientation_.y = msg->poses[0].orientation.y;
-        aruco_orientation_.z = msg->poses[0].orientation.z;
-        aruco_orientation_.w = msg->poses[0].orientation.w;
-
-        RCLCPP_INFO_STREAM(this->get_logger(), "Aruco X: " << aruco_position_[0] << "Y: " << aruco_position_[1]);
-        Broadcaster::aruco_broadcast_timer_cb_();
-    }
+    aruco_tf_broadcaster_->sendTransform(aruco_transform_stamped);
 }
 
 std::string Broadcaster::convert_part_type_to_string(unsigned int part_type)
@@ -117,7 +114,11 @@ std::string Broadcaster::convert_part_color_to_string(unsigned int part_color)
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    auto node = std::make_shared<Broadcaster>("broadcaster");
-    rclcpp::spin(node);
+    auto robot_controller = std::make_shared<RWA3::RobotController>("robot_controller");
+    rclcpp::executors::MultiThreadedExecutor exec;
+    auto node = std::make_shared<Broadcaster>(robot_controller);
+    exec.add_node(node);
+    exec.add_node(robot_controller);
+    exec.spin();
     rclcpp::shutdown();
 }
