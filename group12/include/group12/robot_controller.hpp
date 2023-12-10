@@ -12,7 +12,6 @@
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <mage_msgs/msg/advanced_logical_camera_image.hpp>
 #include <sensor_msgs/msg/image.hpp>
-#include <mage_msgs/msg/marker.hpp>
 #include <ros2_aruco_interfaces/msg/aruco_markers.hpp>
 #include "robot_controller.hpp"
 #include <tf2/exceptions.h>
@@ -70,29 +69,37 @@ namespace RWA3
             // Set up marker subscriptio  and bind it to a callback.
             turtle_camera_subscription_ = this->create_subscription<ros2_aruco_interfaces::msg::ArucoMarkers>("/aruco_markers", rclcpp::SensorDataQoS(),
                                                                                                               std::bind(&RobotController::turtle_camera_sub_cb_, this, std::placeholders::_1));
-            
+
             // this->advanced_camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", rclcpp::SensorDataQoS(),
             //                                                                                                       std::bind(&Broadcaster::advanced_camera_sub_cb_, this, std::placeholders::_1));
         }
 
     private:
-        // ==================== parameters ====================
+        // ======================================== parameters ========================================
         std::string aruco_marker_0_;
         std::string aruco_marker_1_;
         std::string aruco_marker_2_;
 
-        // ==================== attributes ====================
+        // ======================================== attributes ========================================
+        // Shared pointer to Utils Class.
         std::shared_ptr<Utils> utils_ptr_;
+
+        // Publishers
         rclcpp::TimerBase::SharedPtr cmd_vel_timer_;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
+
+        // Subscribers
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscription_;
         rclcpp::Subscription<ros2_aruco_interfaces::msg::ArucoMarkers>::SharedPtr turtle_camera_subscription_;
 
+        // Broadcasters
         std::shared_ptr<tf2_ros::TransformBroadcaster> aruco_tf_broadcaster_;
         rclcpp::TimerBase::SharedPtr aruco_broadcast_timer_;
+
         std::shared_ptr<tf2_ros::TransformBroadcaster> part_tf_broadcaster_;
         rclcpp::TimerBase::SharedPtr part_broadcast_timer_;
 
+        // Listeners
         std::shared_ptr<tf2_ros::TransformListener> aruco_tf_listener{nullptr};
         std::unique_ptr<tf2_ros::Buffer> aruco_tf_buffer_;
 
@@ -115,10 +122,13 @@ namespace RWA3
         std::array<double, 3> part_position_;
         geometry_msgs::msg::Quaternion part_orientation_;
 
-        // ==================== methods =======================
+        // Storage for all Detected Parts
+        std::vector<std::tuple<std::string, std::string, double, double, double, double, double, double, double>> detected_parts_;
+
+        // ======================================== methods ===========================================
 
         /**
-         * @brief Timer to publish cmd_vel messages
+         * @brief Timer callback to publish cmd_vel messages
          *
          */
         void cmd_vel_timer_cb();
@@ -131,26 +141,59 @@ namespace RWA3
         void odom_sub_cb_(const nav_msgs::msg::Odometry::SharedPtr msg);
 
         /**
-         * @brief Subscriber callback to update current "turn instruction" of turtlebot.
-         * @param msg
+         * @brief Method to calculate the distance between two objects
+         * @param loc1, loc2
          */
-
-
 
         double calcualte_distance(const std::pair<double, double> &loc1, const std::pair<double, double> &loc2);
 
         // void part_frame_listener_();
+
+        /**
+         * @brief Method to listen for transformation updates for aruco markers.
+         */
         void aruco_frame_listener_();
 
         // ==================== methods =======================
+        /**
+         * @brief Convert a part type to a string
+         *
+         * @param unsinged int part_type
+         * @return battery
+         * @return regulator
+         * @return sensor
+         * @return pump
+         * @return unknown
+         */
         std::string convert_part_type_to_string(unsigned int part_type);
+
+        /**
+         * @brief Convert a part color to a string
+         *
+         * @param unsinged int part_color
+         * @return red
+         * @return green
+         * @return blue
+         * @return purple
+         * @return orange
+         * @return unknown
+         */
         std::string convert_part_color_to_string(unsigned int part_color);
+
+        /**
+         * @brief Timer callback to broadcast aruco pose to tf.
+         *
+         */
+        void aruco_broadcast_timer_cb_();
+
+        /**
+         * @brief Subscriber callback to update aruco marker location.
+         * @param msg
+         */
+        void turtle_camera_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg);
 
         // void part_broadcast_timer_cb_();
         // void advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
-
-        void aruco_broadcast_timer_cb_();
-        void turtle_camera_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg);
 
     }; // Class Robot Controller
 } // Namespace RWA3

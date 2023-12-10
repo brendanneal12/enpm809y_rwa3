@@ -9,12 +9,26 @@ double RWA3::RobotController::calcualte_distance(const std::pair<double, double>
 void RWA3::RobotController::cmd_vel_timer_cb()
 {
   geometry_msgs::msg::Twist msg;
-  msg.linear.x = 0.1;
-  msg.linear.y = 0.0;
-  msg.linear.z = 0.0;
-  msg.angular.x = 0.0;
-  msg.angular.y = 0.0;
-  msg.angular.z = 0.0;
+
+  if (dist_2_nearest_aruco_ <= 0.4)
+  {
+    msg.linear.x = 0.0;
+    msg.linear.y = 0.0;
+    msg.linear.z = 0.0;
+    msg.angular.x = 0.0;
+    msg.angular.y = 0.0;
+    msg.angular.z = 0.0;
+  }
+
+  else
+  {
+    msg.linear.x = 0.1;
+    msg.linear.y = 0.0;
+    msg.linear.z = 0.0;
+    msg.angular.x = 0.0;
+    msg.angular.y = 0.0;
+    msg.angular.z = 0.0;
+  }
 
   cmd_vel_publisher_->publish(msg);
 }
@@ -76,7 +90,7 @@ void RWA3::RobotController::aruco_frame_listener_()
   }
   catch (const tf2::TransformException &except)
   {
-    // RCLCPP_INFO_STREAM(this->get_logger(), "Could not get transform b/w aruco and odom");
+    RCLCPP_INFO_STREAM(this->get_logger(), "Could not get transform b/w aruco and odom");
   }
   double aruco_x = aruco.transform.translation.x;
   double aruco_y = aruco.transform.translation.y;
@@ -86,8 +100,7 @@ void RWA3::RobotController::aruco_frame_listener_()
   aruco_position.second = aruco_y;
 
   dist_2_nearest_aruco_ = calcualte_distance(aruco_position, robot_position_);
-  RCLCPP_INFO_STREAM(this->get_logger(), "Distance to Nearest Aruco:" << dist_2_nearest_aruco_);
-  // RCLCPP_INFO_STREAM(this->get_logger(), "Found transform b/w aruco and odom");
+  // RCLCPP_INFO_STREAM(this->get_logger(), "Distance to Nearest Aruco:" << dist_2_nearest_aruco_);
 }
 
 // void RWA3::RobotController::advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg)
