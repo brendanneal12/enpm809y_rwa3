@@ -73,22 +73,20 @@ void RWA3::RobotController::aruco_frame_listener_()
   try
   {
     aruco = aruco_tf_buffer_->lookupTransform("aruco_marker_frame", "odom", tf2::TimePointZero);
-    double aruco_x = aruco.transform.translation.x;
-    double aruco_y = aruco.transform.translation.y;
-
-    RCLCPP_INFO_STREAM(this->get_logger(), "Listened Transform:" << aruco_x);
-
-    std::pair<double, double> aruco_position;
-    aruco_position.first = aruco_x;
-    aruco_position.second = aruco_y;
-
-    dist_2_nearest_aruco_ = calcualte_distance(aruco_position, robot_position_);
-    RCLCPP_INFO_STREAM(this->get_logger(), "Distance to Nearest Aruco:" << dist_2_nearest_aruco_);
   }
   catch (const tf2::TransformException &except)
   {
     // RCLCPP_INFO_STREAM(this->get_logger(), "Could not get transform b/w aruco and odom");
   }
+  double aruco_x = aruco.transform.translation.x;
+  double aruco_y = aruco.transform.translation.y;
+
+  std::pair<double, double> aruco_position;
+  aruco_position.first = aruco_x;
+  aruco_position.second = aruco_y;
+
+  dist_2_nearest_aruco_ = calcualte_distance(aruco_position, robot_position_);
+  RCLCPP_INFO_STREAM(this->get_logger(), "Distance to Nearest Aruco:" << dist_2_nearest_aruco_);
   // RCLCPP_INFO_STREAM(this->get_logger(), "Found transform b/w aruco and odom");
 }
 
@@ -181,8 +179,8 @@ std::string RWA3::RobotController::convert_part_color_to_string(unsigned int par
 
 int main(int argc, char **argv)
 {
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<RWA3::RobotController>("robot_controller");
-    rclcpp::spin(node);
-    rclcpp::shutdown();
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<RWA3::RobotController>("robot_controller");
+  rclcpp::spin(node);
+  rclcpp::shutdown();
 }
