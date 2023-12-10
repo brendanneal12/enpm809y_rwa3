@@ -22,13 +22,13 @@ find_package(ros2_aruco_interfaces REQUIRED)
 include_directories(include/group12)
 
 # executables
-# add_executable(robot_controller src/robot_controller.cpp)
-# ament_target_dependencies(robot_controller rclcpp geometry_msgs nav_msgs mage_msgs tf2_ros tf2 tf2_geometry_msgs ros2_aruco_interfaces)
-# install(TARGETS robot_controller DESTINATION lib/${PROJECT_NAME})
+add_executable(robot_controller src/robot_controller.cpp src/utils.cpp)
+ament_target_dependencies(robot_controller rclcpp geometry_msgs nav_msgs mage_msgs tf2_ros tf2 tf2_geometry_msgs ros2_aruco_interfaces)
+install(TARGETS robot_controller DESTINATION lib/${PROJECT_NAME})
 
-add_executable(broadcaster src/broadcaster.cpp src/utils.cpp src/robot_controller.cpp)
-ament_target_dependencies(broadcaster rclcpp geometry_msgs nav_msgs mage_msgs tf2_ros tf2 tf2_geometry_msgs ros2_aruco_interfaces)
-install(TARGETS broadcaster DESTINATION lib/${PROJECT_NAME})
+# add_executable(broadcaster src/broadcaster.cpp src/utils.cpp src/robot_controller.cpp)
+# ament_target_dependencies(broadcaster rclcpp geometry_msgs nav_msgs mage_msgs tf2_ros tf2 tf2_geometry_msgs ros2_aruco_interfaces)
+# install(TARGETS broadcaster DESTINATION lib/${PROJECT_NAME})
 
 # add_executable(listener src/listener.cpp src/utils.cpp)
 # ament_target_dependencies(listener rclcpp geometry_msgs nav_msgs mage_msgs tf2_ros tf2 tf2_geometry_msgs)
