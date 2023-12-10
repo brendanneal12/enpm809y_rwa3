@@ -53,8 +53,8 @@ namespace RWA3
             aruco_tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
             aruco_tf_buffer_->setUsingDedicatedThread(true);
 
-            // part_tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
-            // part_tf_buffer_->setUsingDedicatedThread(true);
+            part_tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+            part_tf_buffer_->setUsingDedicatedThread(true);
 
             aruco_tf_listener = std::make_shared<tf2_ros::TransformListener>(*aruco_tf_buffer_);
             // part_tf_listener = std::make_shared<tf2_ros::TransformListener>(*part_tf_buffer_);
@@ -103,8 +103,8 @@ namespace RWA3
         std::shared_ptr<tf2_ros::TransformListener> aruco_tf_listener{nullptr};
         std::unique_ptr<tf2_ros::Buffer> aruco_tf_buffer_;
 
-        // std::shared_ptr<tf2_ros::TransformListener> part_tf_listener{nullptr};
-        // std::unique_ptr<tf2_ros::Buffer> part_tf_buffer_;
+        std::shared_ptr<tf2_ros::TransformListener> part_tf_listener{nullptr};
+        std::unique_ptr<tf2_ros::Buffer> part_tf_buffer_;
 
         // Robot Attributes
         std::pair<double, double> robot_position_;
@@ -154,7 +154,8 @@ namespace RWA3
          */
         void aruco_frame_listener_();
 
-        // ==================== methods =======================
+        void part_frame_listener_();
+
         /**
          * @brief Convert a part type to a string
          *
@@ -192,8 +193,8 @@ namespace RWA3
          */
         void turtle_camera_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg);
 
-        // void part_broadcast_timer_cb_();
-        // void advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
+        void part_broadcast_timer_cb_();
+        void advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
 
     }; // Class Robot Controller
 } // Namespace RWA3

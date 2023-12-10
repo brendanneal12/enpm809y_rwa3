@@ -104,7 +104,6 @@ void RWA3::RobotController::aruco_frame_listener_()
 
     // dist_2_nearest_aruco_ = calcualte_distance(aruco_position, robot_position_);
     // // RCLCPP_INFO_STREAM(this->get_logger(), "Distance to Nearest Aruco:" << dist_2_nearest_aruco_);
-
   }
   catch (const tf2::TransformException &except)
   {
@@ -112,62 +111,63 @@ void RWA3::RobotController::aruco_frame_listener_()
   }
 }
 
-// void RWA3::RobotController::advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg)
-// {
-//     if (!msg)
-//     {
-//         RCLCPP_INFO_STREAM(this->get_logger(), "LOGICAL CAMERA SUB CB");
-//         part_color_ = convert_part_color_to_string(msg->part_poses[0].part.type);
-//         part_type_ = convert_part_type_to_string(msg->part_poses[0].part.color);
-//         part_position_[0] = msg->part_poses[0].pose.position.x;
-//         part_position_[1] = msg->part_poses[0].pose.position.y;
-//         part_position_[2] = msg->part_poses[0].pose.position.z;
-//         part_orientation_.x = msg->part_poses[0].pose.orientation.x;
-//         part_orientation_.y = msg->part_poses[0].pose.orientation.y;
-//         part_orientation_.z = msg->part_poses[0].pose.orientation.z;
-//         part_orientation_.w = msg->part_poses[0].pose.orientation.w;
+void RWA3::RobotController::advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg)
+{
+  if (!msg)
+  {
+    RCLCPP_INFO_STREAM(this->get_logger(), "LOGICAL CAMERA SUB CB");
+    part_color_ = convert_part_color_to_string(msg->part_poses[0].part.type);
+    part_type_ = convert_part_type_to_string(msg->part_poses[0].part.color);
+    part_position_[0] = msg->part_poses[0].pose.position.x;
+    part_position_[1] = msg->part_poses[0].pose.position.y;
+    part_position_[2] = msg->part_poses[0].pose.position.z;
+    part_orientation_.x = msg->part_poses[0].pose.orientation.x;
+    part_orientation_.y = msg->part_poses[0].pose.orientation.y;
+    part_orientation_.z = msg->part_poses[0].pose.orientation.z;
+    part_orientation_.w = msg->part_poses[0].pose.orientation.w;
 
-//         Broadcaster::part_broadcast_timer_cb_();
+    RWA3::RobotController::part_broadcast_timer_cb_();
 
-//         Broadcaster::part_frame_listener_();
-//     }
-// }
+    RWA3::RobotController::part_frame_listener_();
+  }
+}
 
-// void RWA3::RobotController::part_broadcast_timer_cb_()
-// {
-//   geometry_msgs::msg::TransformStamped part_transform_stamped;
+void RWA3::RobotController::part_broadcast_timer_cb_()
+{
+  geometry_msgs::msg::TransformStamped part_transform_stamped;
 
-//   part_transform_stamped.header.stamp = this->get_clock()->now();
-//   part_transform_stamped.header.frame_id = "logical_camera_link";
-//   part_transform_stamped.child_frame_id = "part_frame";
+  part_transform_stamped.header.stamp = this->get_clock()->now();
+  part_transform_stamped.header.frame_id = "logical_camera_link";
+  part_transform_stamped.child_frame_id = "part_frame";
 
-//   part_transform_stamped.transform.translation.x = part_position_[0];
-//   part_transform_stamped.transform.translation.y = part_position_[1];
-//   part_transform_stamped.transform.translation.z = part_position_[2];
+  part_transform_stamped.transform.translation.x = part_position_[0];
+  part_transform_stamped.transform.translation.y = part_position_[1];
+  part_transform_stamped.transform.translation.z = part_position_[2];
 
-//   part_transform_stamped.transform.rotation.x = part_orientation_.x;
-//   part_transform_stamped.transform.rotation.y = part_orientation_.y;
-//   part_transform_stamped.transform.rotation.z = part_orientation_.z;
-//   part_transform_stamped.transform.rotation.w = part_orientation_.w;
+  part_transform_stamped.transform.rotation.x = part_orientation_.x;
+  part_transform_stamped.transform.rotation.y = part_orientation_.y;
+  part_transform_stamped.transform.rotation.z = part_orientation_.z;
+  part_transform_stamped.transform.rotation.w = part_orientation_.w;
 
-//   // Send the transform
-//   part_tf_broadcaster_->sendTransform(part_transform_stamped);
-// }
+  // Send the transform
+  RCLCPP_INFO_STREAM(this->get_logger(), "LOGICAL CAMERA BROADCASTER CB");
+  part_tf_broadcaster_->sendTransform(part_transform_stamped);
+}
 
-// void RWA3::RobotController::aruco_frame_listener_()
-// {
-//   geometry_msgs::msg::TransformStamped aruco;
+void RWA3::RobotController::part_frame_listener_()
+{
+  geometry_msgs::msg::TransformStamped part;
 
-//   try
-//   {
-//     aruco = aruco_tf_buffer_->lookupTransform("aruco_marker_frame", "odom", tf2::TimePointZero);
-//   }
-//   catch (const tf2::TransformException &except)
-//   {
-//     // RCLCPP_INFO_STREAM(this->get_logger(), "Could not get transform b/w aruco and odom");
-//   }
-//   // RCLCPP_INFO_STREAM(this->get_logger(), "Found transform b/w aruco and odom");
-// }
+  try
+  {
+    part = aruco_tf_buffer_->lookupTransform("part_frame", "odom", tf2::TimePointZero);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Found transform b/w part and odom");
+  }
+  catch (const tf2::TransformException &except)
+  {
+    RCLCPP_INFO_STREAM(this->get_logger(), "Could not get transform b/w part and odom");
+  }
+}
 
 std::string RWA3::RobotController::convert_part_type_to_string(unsigned int part_type)
 {
