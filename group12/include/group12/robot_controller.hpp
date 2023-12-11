@@ -113,8 +113,10 @@ namespace RWA3
         // Robot Attributes
         std::pair<double, double> robot_position_;
         geometry_msgs::msg::Quaternion robot_orientation_;
-        std::string turn_instruction_;
+        std::string marker_id_;
         double dist_2_nearest_aruco_{100};
+        std::string turn_instruction_;
+        int turn_ctr_{0};
 
         // Storage for Marker Position
         std::array<double, 3> aruco_position_;
@@ -200,6 +202,8 @@ namespace RWA3
          * @brief Method to listen for transformation updates for parts.
          */
         void part_frame_listener_();
+
+        void check_turn_instruction();
 
     }; // Class Robot Controller
 } // Namespace RWA3

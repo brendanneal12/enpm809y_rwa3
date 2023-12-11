@@ -12,12 +12,46 @@ void RWA3::RobotController::cmd_vel_timer_cb()
 
   if (dist_2_nearest_aruco_ <= 0.4)
   {
-    msg.linear.x = 0.0;
-    msg.linear.y = 0.0;
-    msg.linear.z = 0.0;
-    msg.angular.x = 0.0;
-    msg.angular.y = 0.0;
-    msg.angular.z = 0.0;
+    RWA3::RobotController::check_turn_instruction();
+    if (turn_instruction_ == "right_90")
+    {
+      if (turn_ctr_ < 16)
+      {
+        msg.linear.x = 0.0;
+        msg.linear.y = 0.0;
+        msg.linear.z = 0.0;
+        msg.angular.x = 0.0;
+        msg.angular.y = 0.0;
+        msg.angular.z = -0.1;
+        turn_ctr_ += 1;
+      }
+      turn_ctr_ = 0;
+    }
+
+    else if (turn_instruction_ == "left_90")
+    {
+      if (turn_ctr_ < 16)
+      {
+        msg.linear.x = 0.0;
+        msg.linear.y = 0.0;
+        msg.linear.z = 0.0;
+        msg.angular.x = 0.0;
+        msg.angular.y = 0.0;
+        msg.angular.z = 0.1;
+        turn_ctr_ += 1;
+      }
+      turn_ctr_ = 0;
+    }
+
+    else if (turn_instruction_ == "stop")
+    {
+      msg.linear.x = 0.0;
+      msg.linear.y = 0.0;
+      msg.linear.z = 0.0;
+      msg.angular.x = 0.0;
+      msg.angular.y = 0.0;
+      msg.angular.z = 0.0;
+    }
   }
 
   else
@@ -47,7 +81,7 @@ void RWA3::RobotController::turtle_camera_sub_cb_(const ros2_aruco_interfaces::m
 {
   if (!msg->marker_ids[0])
   {
-    RCLCPP_INFO_STREAM(this->get_logger(), "RGB Camera Sub Callback");
+    RCLCPP_INFO_STREAM(this->get_logger(), "RGB Camera Sub Callback:" << marker_id_);
     aruco_position_[0] = msg->poses[0].position.x;
     aruco_position_[1] = msg->poses[0].position.y;
     aruco_position_[2] = msg->poses[0].position.z;
@@ -55,12 +89,9 @@ void RWA3::RobotController::turtle_camera_sub_cb_(const ros2_aruco_interfaces::m
     aruco_orientation_.y = msg->poses[0].orientation.y;
     aruco_orientation_.z = msg->poses[0].orientation.z;
     aruco_orientation_.w = msg->poses[0].orientation.w;
-    turn_instruction_ = "aruco_marker_" + std::to_string(msg->marker_ids[0]);
+    marker_id_ = "aruco_marker_" + std::to_string(msg->marker_ids[0]);
 
-    for (int i = 0; i < 10; i++)
-    {
-      RWA3::RobotController::aruco_broadcast_timer_cb_();
-    }
+    RWA3::RobotController::aruco_broadcast_timer_cb_();
 
     RWA3::RobotController::aruco_frame_listener_();
   }
@@ -167,6 +198,14 @@ void RWA3::RobotController::part_frame_listener_()
   catch (const tf2::TransformException &except)
   {
     RCLCPP_INFO_STREAM(this->get_logger(), "Could not get transform b/w part and odom");
+  }
+}
+
+void RWA3::RobotController::check_turn_instruction()
+{
+  if (this->has_parameter(marker_id_))
+  {
+    turn_instruction_ = this->get_parameter(marker_id_).get_value<std::string>();
   }
 }
 
