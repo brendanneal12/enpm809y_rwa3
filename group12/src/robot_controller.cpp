@@ -81,7 +81,7 @@ void RWA3::RobotController::turtle_camera_sub_cb_(const ros2_aruco_interfaces::m
 {
   if (!msg->marker_ids[0])
   {
-    RCLCPP_INFO_STREAM(this->get_logger(), "RGB Camera Sub Callback:" << marker_id_);
+    RCLCPP_INFO_STREAM(this->get_logger(), "RGB Camera Sub Callback");
     aruco_position_[0] = msg->poses[0].position.x;
     aruco_position_[1] = msg->poses[0].position.y;
     aruco_position_[2] = msg->poses[0].position.z;

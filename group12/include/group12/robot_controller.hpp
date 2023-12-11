@@ -73,7 +73,7 @@ namespace RWA3
             advanced_camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", rclcpp::SensorDataQoS(),
                                                                                                                   std::bind(&RobotController::advanced_camera_sub_cb_, this, std::placeholders::_1));
 
-            // aruco_listen_timer_ = this->create_wall_timer(std::chrono::seconds(1), std::bind(&RobotContoller::aruco_frame_listener_, this)); //Problem Here
+            // aruco_listen_timer_ = this->create_wall_timer(std::chrono::seconds(1), std::bind(&RobotContoller::aruco_frame_listener_, this)); // Problem Here
         }
 
     private:
@@ -129,7 +129,7 @@ namespace RWA3
         geometry_msgs::msg::Quaternion part_orientation_;
 
         // Storage for all Detected Parts
-        std::vector<std::tuple<std::string, std::string, double, double, double, double, double, double, double>> detected_parts_;
+        std::vector<std::tuple<std::string, std::string, std::array<double,3>, geometry_msgs::msg::Quaternion>> detected_parts_;
 
         // ======================================== methods ===========================================
 
@@ -190,7 +190,16 @@ namespace RWA3
          */
         void turtle_camera_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg);
 
+        /**
+         * @brief Timer callback to broadcast part pose to tf.
+         *
+         */
         void part_broadcast_timer_cb_();
+
+        /**
+         * @brief Subscriber callback to update part location.
+         * @param msg
+         */
         void advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
 
         /**
@@ -203,7 +212,27 @@ namespace RWA3
          */
         void part_frame_listener_();
 
+        /**
+         * @brief Method to check parameters for directional turn instructions.
+         */
+
         void check_turn_instruction();
+
+        /**
+         * @brief Method to ensure parts seen are unique.
+         */
+        bool check_duplicate_parts();
+
+        /**
+         * @brief Method to add seen parts to data structure.
+
+         */
+        void add_seen_part();
+
+        /**
+         * @brief Method to print all seen parts.
+         */
+        void print_seen_parts();
 
     }; // Class Robot Controller
 } // Namespace RWA3
