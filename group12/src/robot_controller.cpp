@@ -1,6 +1,6 @@
 #include "robot_controller.hpp"
 
-double RWA3::RobotController::calcualte_distance(const std::pair<double, double> &loc1, const std::pair<double, double> &loc2)
+double RWA3::RobotController::calculate_distance(const std::pair<double, double> &loc1, const std::pair<double, double> &loc2)
 {
   double result = sqrt(pow(loc2.first - loc1.first, 2) + pow(loc2.second - loc1.second, 2));
   return result;
@@ -55,6 +55,7 @@ void RWA3::RobotController::turtle_camera_sub_cb_(const ros2_aruco_interfaces::m
     aruco_orientation_.y = msg->poses[0].orientation.y;
     aruco_orientation_.z = msg->poses[0].orientation.z;
     aruco_orientation_.w = msg->poses[0].orientation.w;
+    turn_instruction_ = "aruco_marker_" + std::to_string(msg->marker_ids[0]);
 
     for (int i = 0; i < 10; i++)
     {
@@ -102,7 +103,7 @@ void RWA3::RobotController::aruco_frame_listener_()
     // aruco_position.first = aruco_x;
     // aruco_position.second = aruco_y;
 
-    // dist_2_nearest_aruco_ = calcualte_distance(aruco_position, robot_position_);
+    // dist_2_nearest_aruco_ = calculate_distance(aruco_position, robot_position_);
     // // RCLCPP_INFO_STREAM(this->get_logger(), "Distance to Nearest Aruco:" << dist_2_nearest_aruco_);
   }
   catch (const tf2::TransformException &except)

@@ -52,11 +52,11 @@ namespace RWA3
             // Load a buffer of transforms
             aruco_tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
             aruco_tf_buffer_->setUsingDedicatedThread(true);
+            // aruco_tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*aruco_tf_buffer_); //PROBLEM HERE
 
             part_tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
             part_tf_buffer_->setUsingDedicatedThread(true);
 
-            aruco_tf_listener = std::make_shared<tf2_ros::TransformListener>(*aruco_tf_buffer_);
             // part_tf_listener = std::make_shared<tf2_ros::TransformListener>(*part_tf_buffer_);
 
             // Set up command velocity publisher and bind it to a timer callback.
@@ -70,8 +70,10 @@ namespace RWA3
             turtle_camera_subscription_ = this->create_subscription<ros2_aruco_interfaces::msg::ArucoMarkers>("/aruco_markers", rclcpp::SensorDataQoS(),
                                                                                                               std::bind(&RobotController::turtle_camera_sub_cb_, this, std::placeholders::_1));
 
-            // this->advanced_camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", rclcpp::SensorDataQoS(),
-            //                                                                                                       std::bind(&Broadcaster::advanced_camera_sub_cb_, this, std::placeholders::_1));
+            advanced_camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", rclcpp::SensorDataQoS(),
+                                                                                                                  std::bind(&RobotController::advanced_camera_sub_cb_, this, std::placeholders::_1));
+
+            // aruco_listen_timer_ = this->create_wall_timer(std::chrono::seconds(1), std::bind(&RobotContoller::aruco_frame_listener_, this)); //Problem Here
         }
 
     private:
@@ -91,6 +93,7 @@ namespace RWA3
         // Subscribers
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscription_;
         rclcpp::Subscription<ros2_aruco_interfaces::msg::ArucoMarkers>::SharedPtr turtle_camera_subscription_;
+        rclcpp::Subscription<mage_msgs::msg::AdvancedLogicalCameraImage>::SharedPtr advanced_camera_subscription_;
 
         // Broadcasters
         std::shared_ptr<tf2_ros::TransformBroadcaster> aruco_tf_broadcaster_;
@@ -100,8 +103,9 @@ namespace RWA3
         rclcpp::TimerBase::SharedPtr part_broadcast_timer_;
 
         // Listeners
-        std::shared_ptr<tf2_ros::TransformListener> aruco_tf_listener{nullptr};
+        std::shared_ptr<tf2_ros::TransformListener> aruco_tf_listener_{nullptr};
         std::unique_ptr<tf2_ros::Buffer> aruco_tf_buffer_;
+        // rclcpp::TimerBase::SharedPtr aruco_listen_timer_; //Problem Here
 
         std::shared_ptr<tf2_ros::TransformListener> part_tf_listener{nullptr};
         std::unique_ptr<tf2_ros::Buffer> part_tf_buffer_;
@@ -109,7 +113,7 @@ namespace RWA3
         // Robot Attributes
         std::pair<double, double> robot_position_;
         geometry_msgs::msg::Quaternion robot_orientation_;
-        int turn_instruction_;
+        std::string turn_instruction_;
         double dist_2_nearest_aruco_{100};
 
         // Storage for Marker Position
@@ -145,16 +149,7 @@ namespace RWA3
          * @param loc1, loc2
          */
 
-        double calcualte_distance(const std::pair<double, double> &loc1, const std::pair<double, double> &loc2);
-
-        // void part_frame_listener_();
-
-        /**
-         * @brief Method to listen for transformation updates for aruco markers.
-         */
-        void aruco_frame_listener_();
-
-        void part_frame_listener_();
+        double calculate_distance(const std::pair<double, double> &loc1, const std::pair<double, double> &loc2);
 
         /**
          * @brief Convert a part type to a string
@@ -195,6 +190,16 @@ namespace RWA3
 
         void part_broadcast_timer_cb_();
         void advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
+
+        /**
+         * @brief Method to listen for transformation updates for aruco markers.
+         */
+        void aruco_frame_listener_();
+
+        /**
+         * @brief Method to listen for transformation updates for parts.
+         */
+        void part_frame_listener_();
 
     }; // Class Robot Controller
 } // Namespace RWA3
