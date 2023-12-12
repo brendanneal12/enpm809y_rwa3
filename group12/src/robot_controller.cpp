@@ -15,7 +15,7 @@ void RWA3::RobotController::cmd_vel_timer_cb()
     RWA3::RobotController::check_turn_instruction();
     if (turn_instruction_ == "right_90")
     {
-      if (turn_ctr_ < 16)
+      if (turn_ctr_ < 33)
       {
         msg.linear.x = 0.0;
         msg.linear.y = 0.0;
@@ -78,7 +78,7 @@ void RWA3::RobotController::odom_sub_cb_(const nav_msgs::msg::Odometry::SharedPt
 
 void RWA3::RobotController::turtle_camera_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg)
 {
-  if (!msg->marker_ids[0])
+  //if (!msg->marker_ids[0])
   {
     marker_id_ = "aruco_marker_" + std::to_string(msg->marker_ids[0]);
     RWA3::RobotController::aruco_broadcast_timer_cb_(msg);
