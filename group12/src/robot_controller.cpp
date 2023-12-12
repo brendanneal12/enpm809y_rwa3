@@ -113,14 +113,15 @@ void RWA3::RobotController::aruco_frame_listener_()
     // RCLCPP_INFO_STREAM(this->get_logger(), "Got Transform b/w aruco and odom");
 
     double aruco_x = aruco.transform.translation.x;
-    double aruco_y = aruco.transform.translation.y;
+    double aruco_y = aruco.transform.translation.z;
 
     std::pair<double, double> aruco_position;
     aruco_position.first = aruco_x;
     aruco_position.second = aruco_y;
 
-    dist_2_nearest_aruco_ = calculate_distance(aruco_position, robot_position_) - 1.5;
-    RCLCPP_INFO_STREAM(this->get_logger(), "Aruco X in Odom:" << aruco_x);
+    dist_2_nearest_aruco_ = calculate_distance(aruco_position, robot_position_)-1.0;
+    RCLCPP_INFO_STREAM(this->get_logger(), "Aruco X:" << aruco_x << " Y: " << aruco_y);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Robot X:" << robot_position_.first << " Y: " << robot_position_.second);
     RCLCPP_INFO_STREAM(this->get_logger(), "Distance to Nearest Aruco:" << dist_2_nearest_aruco_);
   }
   catch (const tf2::TransformException &except)
