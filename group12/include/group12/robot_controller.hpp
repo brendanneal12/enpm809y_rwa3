@@ -16,6 +16,8 @@
 #include "robot_controller.hpp"
 #include <tf2/exceptions.h>
 #include <nav_msgs/msg/odometry.hpp>
+#include <rcl_interfaces/msg/set_parameters_result.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 /**
  * @brief Namspace used for RWA3
  *
@@ -32,7 +34,7 @@ namespace RWA3
     public:
         RobotController(std::string node_name) : Node(node_name)
         {
-            // Declare parameters from .yaml file.
+            // Declare parameters.
             this->declare_parameter("aruco_marker_0", "right_90");
             aruco_marker_0_ = this->get_parameter("aruco_marker_0").as_string();
 
@@ -42,14 +44,14 @@ namespace RWA3
             this->declare_parameter("aruco_marker_2", "end");
             aruco_marker_2_ = this->get_parameter("aruco_marker_2").as_string();
 
-            // initialize the transform broadcaster
+            // Initialize the transform broadcasters
             aruco_tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
             part_tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
 
             // Create a utils object to use the utility functions
             utils_ptr_ = std::make_shared<Utils>();
 
-            // Load a buffer of transforms
+            // Load buffers of transforms nad associated listeners
             aruco_tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
             aruco_tf_buffer_->setUsingDedicatedThread(true);
             aruco_tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*aruco_tf_buffer_);
@@ -65,20 +67,26 @@ namespace RWA3
             // Set up odometry subscription and bind it to a callback.
             odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("odom", 10, std::bind(&RobotController::odom_sub_cb_, this, std::placeholders::_1));
 
-            // Set up marker subscriptio  and bind it to a callback.
+            // Set up marker subscription and bind it to a callback.
             turtle_camera_subscription_ = this->create_subscription<ros2_aruco_interfaces::msg::ArucoMarkers>("/aruco_markers", rclcpp::SensorDataQoS(),
                                                                                                               std::bind(&RobotController::turtle_camera_sub_cb_, this, std::placeholders::_1));
 
+            // Set up part subscription and bind it to a callback.
             advanced_camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", rclcpp::SensorDataQoS(),
                                                                                                                   std::bind(&RobotController::advanced_camera_sub_cb_, this, std::placeholders::_1));
 
+            // Set up Listener Timers.
             aruco_listener_timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&RobotController::aruco_frame_listener_, this));
 
             part_listener_timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&RobotController::part_frame_listener_, this));
+
+            // Add a parameter callback.
+            parameter_cb_ = this->add_on_set_parameters_callback(std::bind(&RobotController::parameters_cb, this, std::placeholders::_1));
         }
 
     private:
         // ======================================== parameters ========================================
+        OnSetParametersCallbackHandle::SharedPtr parameter_cb_;
         std::string aruco_marker_0_;
         std::string aruco_marker_1_;
         std::string aruco_marker_2_;
@@ -113,21 +121,20 @@ namespace RWA3
         rclcpp::TimerBase::SharedPtr part_listener_timer_;
 
         // Robot Attributes
-        std::pair<double, double> robot_position_;
+        std::array<double,3> robot_position_;
         geometry_msgs::msg::Quaternion robot_orientation_;
         std::string marker_id_;
         double dist_2_nearest_aruco_{100};
         std::string turn_instruction_;
         int turn_ctr_{0};
+        bool in_turn_{false};
 
         // Storage for Part Position
         std::string part_type_;
         std::string part_color_;
-        std::array<double, 3> part_position_;
-        geometry_msgs::msg::Quaternion part_orientation_;
 
         // Storage for all Detected Parts
-        std::vector<std::tuple<std::string, std::string, std::array<double,3>, geometry_msgs::msg::Quaternion>> detected_parts_;
+        std::vector<std::tuple<std::string, std::string, std::array<double, 3>, geometry_msgs::msg::Quaternion>> detected_parts_;
 
         // ======================================== methods ===========================================
 
@@ -149,12 +156,12 @@ namespace RWA3
          * @param loc1, loc2
          */
 
-        double calculate_distance(const std::pair<double, double> &loc1, const std::pair<double, double> &loc2);
+        double calculate_distance(const std::array<double, 3> &loc1, const std::array<double, 3> &loc2);
 
         /**
          * @brief Convert a part type to a string
          *
-         * @param unsinged int part_type
+         * @param part_type
          * @return battery
          * @return regulator
          * @return sensor
@@ -166,7 +173,7 @@ namespace RWA3
         /**
          * @brief Convert a part color to a string
          *
-         * @param unsinged int part_color
+         * @param part_color
          * @return red
          * @return green
          * @return blue
@@ -218,20 +225,32 @@ namespace RWA3
 
         /**
          * @brief Method to ensure parts seen are unique.
-         * @param
+         * @param new_part_color
+         * @param new_part_type
+         * @return true
+         * @return false
          */
-        bool check_duplicate_parts();
+        bool check_duplicate_parts(const std::string &new_part_color, const std::string &new_part_type);
 
         /**
          * @brief Method to add seen parts to data structure.
-         * @param
+         * @param color
+         * @param type
+         * @param position
+         * @param orientation
          */
-        void add_seen_part();
+        void add_seen_part(const std::string &color, const std::string &type, const std::array<double, 3> &position, const geometry_msgs::msg::Quaternion &orientation);
 
         /**
          * @brief Method to print all seen parts.
          */
         void print_seen_parts();
+
+        /**
+         * @brief Parameter callback to watch for changes of parameters.
+         * @param parameters
+         */
+        rcl_interfaces::msg::SetParametersResult parameters_cb(const std::vector<rclcpp::Parameter> &parameters);
 
     }; // Class Robot Controller
 } // Namespace RWA3

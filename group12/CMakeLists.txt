@@ -27,7 +27,7 @@ ament_target_dependencies(robot_controller rclcpp geometry_msgs nav_msgs mage_ms
 install(TARGETS robot_controller DESTINATION lib/${PROJECT_NAME})
 
 # install directories
-install(DIRECTORY include config DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY include config launch DESTINATION share/${PROJECT_NAME})
 
 
 ament_package()

@@ -25,4 +25,4 @@ Recommended IDE: Visual Studio Code
 1. Download package to RWA3 workspace.
 2. Build and Source.
 3. In one terminal, execute: ros2 launch turtlebot3_gazebo maze.launch.py
-4. In another terminal, execute: rus2 run group12 robot_controller
+4. In another terminal, execute: ros2 launch group12 robot_controller.launch.py
