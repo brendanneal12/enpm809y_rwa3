@@ -52,12 +52,11 @@ namespace RWA3
             // Load a buffer of transforms
             aruco_tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
             aruco_tf_buffer_->setUsingDedicatedThread(true);
-            // aruco_tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*aruco_tf_buffer_); //PROBLEM HERE
+            aruco_tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*aruco_tf_buffer_);
 
             part_tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
             part_tf_buffer_->setUsingDedicatedThread(true);
-
-            // part_tf_listener = std::make_shared<tf2_ros::TransformListener>(*part_tf_buffer_);
+            part_tf_listener = std::make_shared<tf2_ros::TransformListener>(*part_tf_buffer_);
 
             // Set up command velocity publisher and bind it to a timer callback.
             cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
@@ -73,7 +72,9 @@ namespace RWA3
             advanced_camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", rclcpp::SensorDataQoS(),
                                                                                                                   std::bind(&RobotController::advanced_camera_sub_cb_, this, std::placeholders::_1));
 
-            // aruco_listen_timer_ = this->create_wall_timer(std::chrono::seconds(1), std::bind(&RobotContoller::aruco_frame_listener_, this)); // Problem Here
+            aruco_listener_timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&RobotController::aruco_frame_listener_, this));
+
+            part_listener_timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&RobotController::part_frame_listener_, this));
         }
 
     private:
@@ -105,10 +106,11 @@ namespace RWA3
         // Listeners
         std::shared_ptr<tf2_ros::TransformListener> aruco_tf_listener_{nullptr};
         std::unique_ptr<tf2_ros::Buffer> aruco_tf_buffer_;
-        // rclcpp::TimerBase::SharedPtr aruco_listen_timer_; //Problem Here
+        rclcpp::TimerBase::SharedPtr aruco_listener_timer_;
 
         std::shared_ptr<tf2_ros::TransformListener> part_tf_listener{nullptr};
         std::unique_ptr<tf2_ros::Buffer> part_tf_buffer_;
+        rclcpp::TimerBase::SharedPtr part_listener_timer_;
 
         // Robot Attributes
         std::pair<double, double> robot_position_;
@@ -117,10 +119,6 @@ namespace RWA3
         double dist_2_nearest_aruco_{100};
         std::string turn_instruction_;
         int turn_ctr_{0};
-
-        // Storage for Marker Position
-        std::array<double, 3> aruco_position_;
-        geometry_msgs::msg::Quaternion aruco_orientation_;
 
         // Storage for Part Position
         std::string part_type_;
@@ -182,7 +180,7 @@ namespace RWA3
          * @brief Timer callback to broadcast aruco pose to tf.
          *
          */
-        void aruco_broadcast_timer_cb_();
+        void aruco_broadcast_timer_cb_(ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg);
 
         /**
          * @brief Subscriber callback to update aruco marker location.
@@ -194,7 +192,7 @@ namespace RWA3
          * @brief Timer callback to broadcast part pose to tf.
          *
          */
-        void part_broadcast_timer_cb_();
+        void part_broadcast_timer_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
 
         /**
          * @brief Subscriber callback to update part location.
@@ -220,12 +218,13 @@ namespace RWA3
 
         /**
          * @brief Method to ensure parts seen are unique.
+         * @param
          */
         bool check_duplicate_parts();
 
         /**
          * @brief Method to add seen parts to data structure.
-
+         * @param
          */
         void add_seen_part();
 
