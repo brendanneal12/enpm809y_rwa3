@@ -10,7 +10,7 @@ void RWA3::RobotController::cmd_vel_timer_cb()
 {
   geometry_msgs::msg::Twist msg;
 
-  if (dist_2_nearest_aruco_ <= 0.91)
+  if (dist_2_nearest_aruco_ <= 0.65)
   {
     in_turn_ = true;
     RWA3::RobotController::check_turn_instruction();
@@ -121,10 +121,10 @@ void RWA3::RobotController::aruco_frame_listener_()
 
   try
   {
-    aruco = aruco_tf_buffer_->lookupTransform("aruco_marker_frame", "odom", tf2::TimePointZero);
+    aruco = aruco_tf_buffer_->lookupTransform("odom", "aruco_marker_frame", tf2::TimePointZero);
     double aruco_x = aruco.transform.translation.x;
-    double aruco_y = aruco.transform.translation.z;
-    double aruco_z = aruco.transform.translation.y; // Odom Z is equivalent to world Y. Discovered through trial and error.
+    double aruco_y = aruco.transform.translation.y;
+    double aruco_z = aruco.transform.translation.z;
 
     if (!in_turn_)
     {
@@ -147,22 +147,19 @@ void RWA3::RobotController::aruco_frame_listener_()
 
 void RWA3::RobotController::advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg) // PROBLEM HERE: program dies.
 {
-  (void) msg;
-  // if (!msg)
-  // {
-  //   RCLCPP_INFO_STREAM(this->get_logger(), "LOGICAL CAMERA SUB CB");
-  // part_color_ = convert_part_color_to_string(msg->part_poses[0].part.type);
-  // part_type_ = convert_part_type_to_string(msg->part_poses[0].part.color);
-  // }
-  // RWA3::RobotController::part_broadcast_timer_cb_(msg);
+  // (void)msg;
 
+  RCLCPP_INFO_STREAM(this->get_logger(), "LOGICAL CAMERA SUB CB");
+  part_color_ = (msg->part_poses[0].part.type);
+  part_type_ = (msg->part_poses[0].part.color);
+
+  // RWA3::RobotController::part_broadcast_timer_cb_(msg);
 }
 
 void RWA3::RobotController::part_broadcast_timer_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg) // PROBLEM HERE: Untested because of previous problem
 {
   geometry_msgs::msg::TransformStamped part_transform_stamped;
-
-  part_transform_stamped.header.stamp = this->get_clock()->now();
+  part_transform_stamped.header.stamp = current_time_;
   part_transform_stamped.header.frame_id = "logical_camera_link";
   part_transform_stamped.child_frame_id = "part_frame";
 
@@ -176,7 +173,6 @@ void RWA3::RobotController::part_broadcast_timer_cb_(const mage_msgs::msg::Advan
   part_transform_stamped.transform.rotation.w = msg->part_poses[0].pose.orientation.w;
 
   // Send the transform
-  RCLCPP_INFO_STREAM(this->get_logger(), "LOGICAL CAMERA BROADCASTER CB");
   part_tf_broadcaster_->sendTransform(part_transform_stamped);
 }
 
@@ -186,8 +182,8 @@ void RWA3::RobotController::part_frame_listener_() // PROBLEM HERE: untested bec
 
   try
   {
-    part = aruco_tf_buffer_->lookupTransform("part_frame", "odom", tf2::TimePointZero);
-    RCLCPP_INFO_STREAM(this->get_logger(), "Found transform b/w part and odom");
+    part = aruco_tf_buffer_->lookupTransform("odom", "part_frame", tf2::TimePointZero);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Found transform b/w part and odom");
     std::array<double, 3> part_location;
     part_location[0] = part.transform.translation.x;
     part_location[1] = part.transform.translation.y;
@@ -203,6 +199,11 @@ void RWA3::RobotController::part_frame_listener_() // PROBLEM HERE: untested bec
   {
     // RCLCPP_INFO_STREAM(this->get_logger(), except.what());
   }
+}
+
+void RWA3::RobotController::clock_sub_cb_(const rosgraph_msgs::msg::Clock::SharedPtr msg)
+{
+  current_time_ = msg->clock;
 }
 
 void RWA3::RobotController::check_turn_instruction()
@@ -244,7 +245,7 @@ void RWA3::RobotController::print_seen_parts()
     auto rpy = utils_ptr_->set_euler_from_quaternion(tf2_quaternion);
 
     std::cout << std::get<0>(part) << " " << std::get<1>(part) << " detected at xyz=[" << std::get<2>(part)[0] << " " << std::get<2>(part)[1] << " " << std::get<2>(part)[2] << "] rpy=["
-              << rpy.at(0) << " " << rpy.at(0) << " " << rpy.at(2) << "]";
+              << rpy.at(0) << " " << rpy.at(0) << " " << rpy.at(2) << "]\n";
   }
 }
 std::string RWA3::RobotController::convert_part_type_to_string(unsigned int part_type)

@@ -26,3 +26,4 @@ Recommended IDE: Visual Studio Code
 2. Build and Source.
 3. In one terminal, execute: ros2 launch turtlebot3_gazebo maze.launch.py
 4. In another terminal, execute: ros2 launch group12 robot_controller.launch.py
+5. DEBUGGING ADVANCED LOGICAL CAMERA SUB: execute: ros2 run group12 robot_controller

@@ -18,6 +18,7 @@
 #include <nav_msgs/msg/odometry.hpp>
 #include <rcl_interfaces/msg/set_parameters_result.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <rosgraph_msgs/msg/clock.hpp>
 /**
  * @brief Namspace used for RWA3
  *
@@ -34,7 +35,7 @@ namespace RWA3
     public:
         RobotController(std::string node_name) : Node(node_name)
         {
-            // Declare parameters.
+            // Declare parameters -> Grabs from .yaml
             this->declare_parameter("aruco_marker_0", "right_90");
             aruco_marker_0_ = this->get_parameter("aruco_marker_0").as_string();
 
@@ -82,6 +83,9 @@ namespace RWA3
 
             // Add a parameter callback.
             parameter_cb_ = this->add_on_set_parameters_callback(std::bind(&RobotController::parameters_cb, this, std::placeholders::_1));
+
+            clock_subscription_ = this->create_subscription<rosgraph_msgs::msg::Clock>("/clock", rclcpp::SensorDataQoS(),
+                                                                                                              std::bind(&RobotController::clock_sub_cb_, this, std::placeholders::_1));
         }
 
     private:
@@ -103,8 +107,9 @@ namespace RWA3
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscription_;
         rclcpp::Subscription<ros2_aruco_interfaces::msg::ArucoMarkers>::SharedPtr turtle_camera_subscription_;
         rclcpp::Subscription<mage_msgs::msg::AdvancedLogicalCameraImage>::SharedPtr advanced_camera_subscription_;
+        rclcpp::Subscription<rosgraph_msgs::msg::Clock>::SharedPtr clock_subscription_;
 
-        // Broadcasters
+        // Broadcastersvoid clock_sub_cb_(const rosgraph_msgs::msg::Clock::SharedPtr msg)
         std::shared_ptr<tf2_ros::TransformBroadcaster> aruco_tf_broadcaster_;
         rclcpp::TimerBase::SharedPtr aruco_broadcast_timer_;
 
@@ -121,7 +126,7 @@ namespace RWA3
         rclcpp::TimerBase::SharedPtr part_listener_timer_;
 
         // Robot Attributes
-        std::array<double,3> robot_position_;
+        std::array<double, 3> robot_position_;
         geometry_msgs::msg::Quaternion robot_orientation_;
         std::string marker_id_;
         double dist_2_nearest_aruco_{100};
@@ -132,6 +137,9 @@ namespace RWA3
         // Storage for Part Position
         std::string part_type_;
         std::string part_color_;
+
+        // Current Time
+        rclcpp::Time current_time_;
 
         // Storage for all Detected Parts
         std::vector<std::tuple<std::string, std::string, std::array<double, 3>, geometry_msgs::msg::Quaternion>> detected_parts_;
@@ -206,6 +214,8 @@ namespace RWA3
          * @param msg
          */
         void advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
+
+        void clock_sub_cb_(const rosgraph_msgs::msg::Clock::SharedPtr msg);
 
         /**
          * @brief Method to listen for transformation updates for aruco markers.
