@@ -84,8 +84,10 @@ namespace RWA3
             // Add a parameter callback.
             parameter_cb_ = this->add_on_set_parameters_callback(std::bind(&RobotController::parameters_cb, this, std::placeholders::_1));
 
+            // Set up clock subscriptions and bind it to a callback.
+
             clock_subscription_ = this->create_subscription<rosgraph_msgs::msg::Clock>("/clock", rclcpp::SensorDataQoS(),
-                                                                                                              std::bind(&RobotController::clock_sub_cb_, this, std::placeholders::_1));
+                                                                                       std::bind(&RobotController::clock_sub_cb_, this, std::placeholders::_1));
         }
 
     private:
@@ -133,6 +135,7 @@ namespace RWA3
         std::string turn_instruction_;
         int turn_ctr_{0};
         bool in_turn_{false};
+        bool at_finish_{false};
 
         // Storage for Part Position
         std::string part_type_;
@@ -176,7 +179,7 @@ namespace RWA3
          * @return pump
          * @return unknown
          */
-        std::string convert_part_type_to_string(unsigned int part_type);
+        std::string convert_part_type_to_string(uint8_t part_type);
 
         /**
          * @brief Convert a part color to a string
@@ -189,7 +192,7 @@ namespace RWA3
          * @return orange
          * @return unknown
          */
-        std::string convert_part_color_to_string(unsigned int part_color);
+        std::string convert_part_color_to_string(uint8_t part_color);
 
         /**
          * @brief Timer callback to broadcast aruco pose to tf.
@@ -214,6 +217,11 @@ namespace RWA3
          * @param msg
          */
         void advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
+
+        /**
+         * @brief Subscriber callback to update current time.
+         * @param msg
+         */
 
         void clock_sub_cb_(const rosgraph_msgs::msg::Clock::SharedPtr msg);
 
@@ -261,6 +269,12 @@ namespace RWA3
          * @param parameters
          */
         rcl_interfaces::msg::SetParametersResult parameters_cb(const std::vector<rclcpp::Parameter> &parameters);
+
+
+        /**
+         * @brief Method to check if robot has reached finish line.
+         */
+        void check_finish();
 
     }; // Class Robot Controller
 } // Namespace RWA3

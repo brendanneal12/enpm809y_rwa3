@@ -9,72 +9,101 @@ double RWA3::RobotController::calculate_distance(const std::array<double, 3> &lo
 void RWA3::RobotController::cmd_vel_timer_cb()
 {
   geometry_msgs::msg::Twist msg;
-
-  if (dist_2_nearest_aruco_ <= 0.65)
+  RWA3::RobotController::check_turn_instruction();
+  if (at_finish_)
   {
-    in_turn_ = true;
-    RWA3::RobotController::check_turn_instruction();
-    if (turn_instruction_ == "right_90")
-    {
-      if (turn_ctr_ < 33)
-      {
-        msg.linear.x = 0.0;
-        msg.linear.y = 0.0;
-        msg.linear.z = 0.0;
-        msg.angular.x = 0.0;
-        msg.angular.y = 0.0;
-        msg.angular.z = -0.1;
-        turn_ctr_ += 1;
-        RCLCPP_INFO_STREAM(this->get_logger(), turn_ctr_);
-      }
-      else
-      {
-        in_turn_ = false;
-      }
-    }
-
-    else if (turn_instruction_ == "left_90")
-    {
-      if (turn_ctr_ < 33)
-      {
-        msg.linear.x = 0.0;
-        msg.linear.y = 0.0;
-        msg.linear.z = 0.0;
-        msg.angular.x = 0.0;
-        msg.angular.y = 0.0;
-        msg.angular.z = 0.1;
-        turn_ctr_ += 1;
-        RCLCPP_INFO_STREAM(this->get_logger(), turn_ctr_);
-      }
-      else
-      {
-        in_turn_ = false;
-      }
-    }
-
-    else if (turn_instruction_ == "stop")
-    {
-      msg.linear.x = 0.0;
-      msg.linear.y = 0.0;
-      msg.linear.z = 0.0;
-      msg.angular.x = 0.0;
-      msg.angular.y = 0.0;
-      msg.angular.z = 0.0;
-      RWA3::RobotController::print_seen_parts();
-    }
-  }
-
-  else
-  {
-    turn_ctr_ = 0;
-    msg.linear.x = 0.1;
+    msg.linear.x = 0.0;
     msg.linear.y = 0.0;
     msg.linear.z = 0.0;
     msg.angular.x = 0.0;
     msg.angular.y = 0.0;
     msg.angular.z = 0.0;
+    RWA3::RobotController::print_seen_parts();
   }
 
+  if (!at_finish_)
+  {
+    if (turn_instruction_ == "right_90")
+    {
+      if (dist_2_nearest_aruco_ <= 0.825)
+      {
+        in_turn_ = true;
+        if (turn_ctr_ < 34)
+        {
+          msg.linear.x = 0.0;
+          msg.linear.y = 0.0;
+          msg.linear.z = 0.0;
+          msg.angular.x = 0.0;
+          msg.angular.y = 0.0;
+          msg.angular.z = -0.1;
+          turn_ctr_ += 1;
+          RCLCPP_INFO_STREAM(this->get_logger(), "Executing Right 90 Turn");
+        }
+        else
+        {
+          in_turn_ = false;
+        }
+      }
+      else
+      {
+        turn_ctr_ = 0;
+        msg.linear.x = 0.1;
+        msg.linear.y = 0.0;
+        msg.linear.z = 0.0;
+        msg.angular.x = 0.0;
+        msg.angular.y = 0.0;
+        msg.angular.z = 0.0;
+      }
+    }
+    else if (turn_instruction_ == "left_90")
+    {
+      if (dist_2_nearest_aruco_ <= 0.825)
+      {
+        in_turn_ = true;
+        if (turn_ctr_ < 34)
+        {
+          msg.linear.x = 0.0;
+          msg.linear.y = 0.0;
+          msg.linear.z = 0.0;
+          msg.angular.x = 0.0;
+          msg.angular.y = 0.0;
+          msg.angular.z = 0.1;
+          turn_ctr_ += 1;
+          RCLCPP_INFO_STREAM(this->get_logger(), "Executing Left 90 Turn");
+        }
+        else
+        {
+          in_turn_ = false;
+        }
+      }
+      else
+      {
+        turn_ctr_ = 0;
+        msg.linear.x = 0.1;
+        msg.linear.y = 0.0;
+        msg.linear.z = 0.0;
+        msg.angular.x = 0.0;
+        msg.angular.y = 0.0;
+        msg.angular.z = 0.0;
+      }
+    }
+    else if (turn_instruction_ == "end")
+    {
+      if (dist_2_nearest_aruco_ <= 0.735)
+      {
+        at_finish_ = true;
+      }
+      else
+      {
+        msg.linear.x = 0.1;
+        msg.linear.y = 0.0;
+        msg.linear.z = 0.0;
+        msg.angular.x = 0.0;
+        msg.angular.y = 0.0;
+        msg.angular.z = 0.0;
+      }
+    }
+  }
   cmd_vel_publisher_->publish(msg);
 }
 
@@ -91,10 +120,13 @@ void RWA3::RobotController::odom_sub_cb_(const nav_msgs::msg::Odometry::SharedPt
 
 void RWA3::RobotController::turtle_camera_sub_cb_(const ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg)
 {
-  if (!in_turn_)
+  if (!at_finish_)
   {
-    marker_id_ = "aruco_marker_" + std::to_string(msg->marker_ids[0]);
-    RWA3::RobotController::aruco_broadcast_timer_cb_(msg);
+    if (!in_turn_)
+    {
+      marker_id_ = "aruco_marker_" + std::to_string(msg->marker_ids[0]);
+      RWA3::RobotController::aruco_broadcast_timer_cb_(msg);
+    }
   }
 }
 
@@ -125,18 +157,18 @@ void RWA3::RobotController::aruco_frame_listener_()
     double aruco_x = aruco.transform.translation.x;
     double aruco_y = aruco.transform.translation.y;
     double aruco_z = aruco.transform.translation.z;
-
-    if (!in_turn_)
+    if (!at_finish_)
     {
-      std::array<double, 3> aruco_position;
-      aruco_position[0] = aruco_x;
-      aruco_position[1] = aruco_y;
-      aruco_position[2] = aruco_z;
+      if (!in_turn_)
+      {
+        std::array<double, 3> aruco_position;
+        aruco_position[0] = aruco_x;
+        aruco_position[1] = aruco_y;
+        aruco_position[2] = aruco_z;
 
-      dist_2_nearest_aruco_ = calculate_distance(aruco_position, robot_position_);
-      RCLCPP_INFO_STREAM(this->get_logger(), "Aruco X:" << aruco_x << " Y: " << aruco_y << " Z: " << aruco_z);
-      RCLCPP_INFO_STREAM(this->get_logger(), "Robot X:" << robot_position_[0] << " Y: " << robot_position_[1] << " Z: " << robot_position_[2]);
-      RCLCPP_INFO_STREAM(this->get_logger(), "Distance to Nearest Aruco:" << dist_2_nearest_aruco_);
+        dist_2_nearest_aruco_ = calculate_distance(aruco_position, robot_position_);
+        RCLCPP_INFO_STREAM(this->get_logger(), "Distance to detected Aruco:" << dist_2_nearest_aruco_);
+      }
     }
   }
   catch (const tf2::TransformException &except)
@@ -145,18 +177,18 @@ void RWA3::RobotController::aruco_frame_listener_()
   }
 }
 
-void RWA3::RobotController::advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg) // PROBLEM HERE: program dies.
+void RWA3::RobotController::advanced_camera_sub_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg) 
 {
-  // (void)msg;
+  if (msg->part_poses.size() != 0)
+  {
+    part_type_ = RWA3::RobotController::convert_part_type_to_string(msg->part_poses[0].part.type);
+    part_color_ = RWA3::RobotController::convert_part_color_to_string(msg->part_poses[0].part.color);
 
-  RCLCPP_INFO_STREAM(this->get_logger(), "LOGICAL CAMERA SUB CB");
-  part_color_ = (msg->part_poses[0].part.type);
-  part_type_ = (msg->part_poses[0].part.color);
-
-  // RWA3::RobotController::part_broadcast_timer_cb_(msg);
+    RWA3::RobotController::part_broadcast_timer_cb_(msg);
+  }
 }
 
-void RWA3::RobotController::part_broadcast_timer_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg) // PROBLEM HERE: Untested because of previous problem
+void RWA3::RobotController::part_broadcast_timer_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg)
 {
   geometry_msgs::msg::TransformStamped part_transform_stamped;
   part_transform_stamped.header.stamp = current_time_;
@@ -176,14 +208,13 @@ void RWA3::RobotController::part_broadcast_timer_cb_(const mage_msgs::msg::Advan
   part_tf_broadcaster_->sendTransform(part_transform_stamped);
 }
 
-void RWA3::RobotController::part_frame_listener_() // PROBLEM HERE: untested because of prvious problem.
+void RWA3::RobotController::part_frame_listener_()
 {
   geometry_msgs::msg::TransformStamped part;
 
   try
   {
     part = aruco_tf_buffer_->lookupTransform("odom", "part_frame", tf2::TimePointZero);
-    // RCLCPP_INFO_STREAM(this->get_logger(), "Found transform b/w part and odom");
     std::array<double, 3> part_location;
     part_location[0] = part.transform.translation.x;
     part_location[1] = part.transform.translation.y;
@@ -193,7 +224,7 @@ void RWA3::RobotController::part_frame_listener_() // PROBLEM HERE: untested bec
     part_rotation.y = part.transform.rotation.y;
     part_rotation.z = part.transform.rotation.z;
     part_rotation.w = part.transform.rotation.w;
-    RWA3::RobotController::add_seen_part(part_type_, part_color_, part_location, part_rotation);
+    RWA3::RobotController::add_seen_part(part_color_, part_type_, part_location, part_rotation);
   }
   catch (const tf2::TransformException &except)
   {
@@ -233,6 +264,7 @@ void RWA3::RobotController::add_seen_part(const std::string &color, const std::s
   if (!duplicate_check)
   {
     detected_parts_.emplace_back(color, type, position, orientation);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Detected a Part: " << color << " " << type);
   }
 }
 
@@ -241,14 +273,14 @@ void RWA3::RobotController::print_seen_parts()
   for (const auto &part : detected_parts_)
   {
     tf2::Quaternion tf2_quaternion;
-    tf2::fromMsg(std::get<3>(part), tf2_quaternion);
+    tf2::convert(std::get<3>(part), tf2_quaternion);
     auto rpy = utils_ptr_->set_euler_from_quaternion(tf2_quaternion);
 
-    std::cout << std::get<0>(part) << " " << std::get<1>(part) << " detected at xyz=[" << std::get<2>(part)[0] << " " << std::get<2>(part)[1] << " " << std::get<2>(part)[2] << "] rpy=["
-              << rpy.at(0) << " " << rpy.at(0) << " " << rpy.at(2) << "]\n";
+    RCLCPP_INFO_STREAM(this->get_logger(), std::get<0>(part) << " " << std::get<1>(part) << " detected at xyz=[" << std::get<2>(part)[0] << " " << std::get<2>(part)[1] << " " << std::get<2>(part)[2] << "] rpy=["
+                                                             << rpy.at(0) << " " << rpy.at(1) << " " << rpy.at(2) << "]\n");
   }
 }
-std::string RWA3::RobotController::convert_part_type_to_string(unsigned int part_type)
+std::string RWA3::RobotController::convert_part_type_to_string(uint8_t part_type)
 {
   if (part_type == mage_msgs::msg::Part::BATTERY)
     return "battery";
@@ -262,7 +294,7 @@ std::string RWA3::RobotController::convert_part_type_to_string(unsigned int part
     return "unknown";
 }
 
-std::string RWA3::RobotController::convert_part_color_to_string(unsigned int part_color)
+std::string RWA3::RobotController::convert_part_color_to_string(uint8_t part_color)
 {
   if (part_color == mage_msgs::msg::Part::RED)
     return "red";
@@ -304,6 +336,14 @@ rcl_interfaces::msg::SetParametersResult RWA3::RobotController::parameters_cb(co
     }
   }
   return result;
+}
+
+void RWA3::RobotController::check_finish()
+{
+  if ((dist_2_nearest_aruco_ < 0.85) && (turn_instruction_ == "end"))
+  {
+    at_finish_ = true;
+  }
 }
 
 int main(int argc, char **argv)
