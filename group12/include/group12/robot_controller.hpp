@@ -3,7 +3,7 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <utils.hpp>
 #include <geometry_msgs/msg/pose.hpp>
-#include "tf2_ros/transform_broadcaster.h"
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
 #include <mage_msgs/msg/part.hpp>
@@ -13,7 +13,6 @@
 #include <mage_msgs/msg/advanced_logical_camera_image.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <ros2_aruco_interfaces/msg/aruco_markers.hpp>
-#include "robot_controller.hpp"
 #include <tf2/exceptions.h>
 #include <nav_msgs/msg/odometry.hpp>
 #include <rcl_interfaces/msg/set_parameters_result.hpp>
@@ -33,6 +32,10 @@ namespace RWA3
     class RobotController : public rclcpp::Node
     {
     public:
+        /**
+         * @brief Constructor
+         * @param node_name
+        */
         RobotController(std::string node_name) : Node(node_name)
         {
             // Declare parameters -> Grabs from .yaml
@@ -52,11 +55,14 @@ namespace RWA3
             // Create a utils object to use the utility functions
             utils_ptr_ = std::make_shared<Utils>();
 
-            // Load buffers of transforms nad associated listeners
+            // Load buffers of transforms and associated listeners
+
+            // Aruco
             aruco_tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
             aruco_tf_buffer_->setUsingDedicatedThread(true);
             aruco_tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*aruco_tf_buffer_);
 
+            // Parts
             part_tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
             part_tf_buffer_->setUsingDedicatedThread(true);
             part_tf_listener = std::make_shared<tf2_ros::TransformListener>(*part_tf_buffer_);
@@ -76,6 +82,9 @@ namespace RWA3
             advanced_camera_subscription_ = this->create_subscription<mage_msgs::msg::AdvancedLogicalCameraImage>("mage/advanced_logical_camera/image", rclcpp::SensorDataQoS(),
                                                                                                                   std::bind(&RobotController::advanced_camera_sub_cb_, this, std::placeholders::_1));
 
+            // Set up clock subscriptions and bind it to a callback.
+            clock_subscription_ = this->create_subscription<rosgraph_msgs::msg::Clock>("/clock", rclcpp::SensorDataQoS(),
+                                                                                       std::bind(&RobotController::clock_sub_cb_, this, std::placeholders::_1));
             // Set up Listener Timers.
             aruco_listener_timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&RobotController::aruco_frame_listener_, this));
 
@@ -83,11 +92,6 @@ namespace RWA3
 
             // Add a parameter callback.
             parameter_cb_ = this->add_on_set_parameters_callback(std::bind(&RobotController::parameters_cb, this, std::placeholders::_1));
-
-            // Set up clock subscriptions and bind it to a callback.
-
-            clock_subscription_ = this->create_subscription<rosgraph_msgs::msg::Clock>("/clock", rclcpp::SensorDataQoS(),
-                                                                                       std::bind(&RobotController::clock_sub_cb_, this, std::placeholders::_1));
         }
 
     private:
@@ -111,7 +115,7 @@ namespace RWA3
         rclcpp::Subscription<mage_msgs::msg::AdvancedLogicalCameraImage>::SharedPtr advanced_camera_subscription_;
         rclcpp::Subscription<rosgraph_msgs::msg::Clock>::SharedPtr clock_subscription_;
 
-        // Broadcastersvoid clock_sub_cb_(const rosgraph_msgs::msg::Clock::SharedPtr msg)
+        // Broadcasters
         std::shared_ptr<tf2_ros::TransformBroadcaster> aruco_tf_broadcaster_;
         rclcpp::TimerBase::SharedPtr aruco_broadcast_timer_;
 
@@ -130,14 +134,18 @@ namespace RWA3
         // Robot Attributes
         std::array<double, 3> robot_position_;
         geometry_msgs::msg::Quaternion robot_orientation_;
+
+        // Marker Attributes
         std::string marker_id_;
         double dist_2_nearest_aruco_{100};
+
+        // Navigation Logic Attributes
         std::string turn_instruction_;
         int turn_ctr_{0};
         bool in_turn_{false};
         bool at_finish_{false};
 
-        // Storage for Part Position
+        // Part Info Storage
         std::string part_type_;
         std::string part_color_;
 
@@ -163,7 +171,7 @@ namespace RWA3
         void odom_sub_cb_(const nav_msgs::msg::Odometry::SharedPtr msg);
 
         /**
-         * @brief Method to calculate the distance between two objects
+         * @brief Method to calculate the distance between two objects (Robot and Detected Aruco Marker)
          * @param loc1, loc2
          */
 
@@ -196,6 +204,7 @@ namespace RWA3
 
         /**
          * @brief Timer callback to broadcast aruco pose to tf.
+         * @param msg
          *
          */
         void aruco_broadcast_timer_cb_(ros2_aruco_interfaces::msg::ArucoMarkers::SharedPtr msg);
@@ -208,6 +217,7 @@ namespace RWA3
 
         /**
          * @brief Timer callback to broadcast part pose to tf.
+         * @param msg
          *
          */
         void part_broadcast_timer_cb_(const mage_msgs::msg::AdvancedLogicalCameraImage::SharedPtr msg);
@@ -269,12 +279,6 @@ namespace RWA3
          * @param parameters
          */
         rcl_interfaces::msg::SetParametersResult parameters_cb(const std::vector<rclcpp::Parameter> &parameters);
-
-
-        /**
-         * @brief Method to check if robot has reached finish line.
-         */
-        void check_finish();
 
     }; // Class Robot Controller
 } // Namespace RWA3
